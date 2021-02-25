@@ -266,8 +266,8 @@ class Trainer(object):
         if save_image_path: plt.savefig(save_image_path, bbox_inches="tight")
         if show_image: plt.show()
 
-    def visualise_set_of_preexisting_results(self, results_data_paths, save_image_path=None, show_image=True, plot_titles=None,
-                                             y_limits=[None,None]):
+    def visualise_set_of_preexisting_results(self, results_data_paths, save_image_path=None, show_image=True,
+                                             plot_titles=None, y_limits=[None, None]):
         """Visualises a set of preexisting results on 1 plot by making subplots"""
         assert isinstance(results_data_paths, list), "all_results must be a list of data paths"
 

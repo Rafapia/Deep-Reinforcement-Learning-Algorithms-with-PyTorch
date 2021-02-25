@@ -5,6 +5,9 @@ from agents.Trainer import Trainer
 from utilities.data_structures.Config import Config
 from agents.DQN_agents.DQN import DQN
 
+
+
+
 config = Config()
 config.seed = 1
 config.environment = Bit_Flipping_Environment(14)

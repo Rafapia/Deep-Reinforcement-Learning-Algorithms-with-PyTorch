@@ -27,7 +27,7 @@ class Base_Agent(object):
 
         self.lowest_possible_episode_score = self.get_lowest_possible_episode_score()
 
-        self.state_size =  int(self.get_state_size())
+        self.state_size = int(self.get_state_size())
         self.hyperparameters = config.hyperparameters
         self.average_score_required_to_win = self.get_score_required_to_win()
         self.rolling_score_window = self.get_trials()
@@ -287,15 +287,16 @@ class Base_Agent(object):
                 torch.nn.utils.clip_grad_norm_(net.parameters(), clipping_norm) #clip gradients to help stabilise training
         optimizer.step() #this applies the gradients
 
-    def log_gradient_and_weight_information(self, network, optimizer):
+    def log_gradient_and_weight_information(self, networks, optimizer):
 
         # log weight information
         total_norm = 0
-        for name, param in network.named_parameters():
-            param_norm = param.grad.data.norm(2)
-            total_norm += param_norm.item() ** 2
-        total_norm = total_norm ** (1. / 2)
-        self.logger.info("Gradient Norm {}".format(total_norm))
+        for network in networks:
+            for name, param in network.named_parameters():
+                param_norm = param.grad.data.norm(2)
+                total_norm += param_norm.item() ** 2
+            total_norm = total_norm ** (1. / 2)
+            self.logger.info("Gradient Norm {}".format(total_norm))
 
         for g in optimizer.param_groups:
             learning_rate = g['lr']

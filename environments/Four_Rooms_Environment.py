@@ -28,7 +28,7 @@ class Four_Rooms_Environment(gym.Env):
         self.stochastic_actions_probability = stochastic_actions_probability
         self.actions = set(range(4))
         # Note that the indices of the grid are such that (0, 0) is the top left point
-        self.action_to_effect_dict = {0: "North", 1: "East", 2: "South", 3:"West"}
+        self.action_to_effect_dict = {0: "North", 1: "East", 2: "South", 3: "West"}
         self.current_user_location = None
         self.current_goal_location = None
         self.reward_for_achieving_goal = (self.grid_width + self.grid_height) * 3.0
