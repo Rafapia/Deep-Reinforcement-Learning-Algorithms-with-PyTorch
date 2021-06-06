@@ -124,7 +124,7 @@ class Base_Agent(object):
         handler = logging.FileHandler(filename)
         handler.setLevel(logging.INFO)
         # create a logging format
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter('%(asctime)s [%(process)d] %(name)s - %(levelname)s - %(message)s')
         handler.setFormatter(formatter)
         # add the handlers to the logger
         logger.addHandler(handler)
@@ -132,10 +132,20 @@ class Base_Agent(object):
 
     def log_game_info(self):
         """Logs info relating to the game"""
-        for ix, param in enumerate([self.environment_title, self.action_types, self.action_size, self.lowest_possible_episode_score,
-                      self.state_size, self.hyperparameters, self.average_score_required_to_win, self.rolling_score_window,
-                      self.device]):
-            self.logger.info("{} -- {}".format(ix, param))
+        # for ix, param in enumerate([self.environment_title, self.action_types, self.action_size, self.lowest_possible_episode_score,
+        #               self.state_size, self.hyperparameters, self.average_score_required_to_win, self.rolling_score_window,
+        #               self.device]):
+        #     self.logger.info("{} -- {}".format(ix, param))
+
+        self.logger.info(f"Environment title: {self.environment_title}")
+        self.logger.info(f"Activation types: {self.action_types}")
+        self.logger.info(f"Action size: {self.action_size}")
+        self.logger.info(f"Lowest possible ep. score: {self.lowest_possible_episode_score}")
+        self.logger.info(f"State size: {self.state_size}")
+        self.logger.info(f"Hyperparameters: {self.hyperparameters}")
+        self.logger.info(f"Avg. score required to win: {self.average_score_required_to_win}")
+        self.logger.info(f"Rolling score window: {self.rolling_score_window}")
+        self.logger.info(f"Device: {self.device}")
 
     def set_random_seeds(self, random_seed):
         """Sets all possible random seeds so results can be reproduced"""
@@ -170,7 +180,7 @@ class Base_Agent(object):
         self.episode_achieved_goals = []
         self.episode_observations = []
         if "exploration_strategy" in self.__dict__.keys(): self.exploration_strategy.reset()
-        self.logger.info("Reseting game -- New start state {}".format(self.state))
+        self.logger.info("Resetting game -- New start state {}".format(self.state))
 
     def track_episodes_data(self):
         """Saves the data from the recent episodes"""

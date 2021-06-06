@@ -11,12 +11,11 @@ from gym.core import Wrapper
 
 config = Config()
 
-config.seed = 1
 config.environment = Wrapper(SimpleISC())
 config.num_episodes_to_run = 5
 
-config.file_to_save_data_results = "Data_and_Graphs/IllinoisSolarCar_Results_Data.pkl"
-config.file_to_save_results_graph = "Data_and_Graphs/IllinoisSolarCar_Results_Graph.png"
+config.file_to_save_data_results = "data_and_graphs/IllinoisSolarCar_Results_Data.pkl"
+config.file_to_save_results_graph = "data_and_graphs/IllinoisSolarCar_Results_Graph.png"
 config.show_solution_score = True
 config.visualise_individual_results = True
 config.visualise_overall_agent_results = True
@@ -27,7 +26,7 @@ config.overwrite_existing_results_file = True
 config.randomise_random_seed = False
 config.save_model = False
 config.seed = 0
-# config.debug_mode = True
+config.debug_mode = True
 
 
 config.hyperparameters = {
@@ -55,7 +54,7 @@ config.hyperparameters = {
 }
 
 if __name__== '__main__':
-    AGENTS = [DQN, DDQN, Dueling_DDQN, DDQN_With_Prioritised_Experience_Replay]
+    AGENTS = [DQN]#, DDQN, Dueling_DDQN, DDQN_With_Prioritised_Experience_Replay]
     trainer = Trainer(config, AGENTS)
     trainer.run_games_for_agents()
 
