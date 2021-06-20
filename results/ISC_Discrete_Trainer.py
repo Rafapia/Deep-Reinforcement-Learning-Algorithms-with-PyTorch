@@ -6,16 +6,19 @@ from agents.DQN_agents.DQN import DQN
 from agents.DQN_agents.DDQN import DDQN
 from agents.DQN_agents.Dueling_DDQN import Dueling_DDQN
 from agents.DQN_agents.DDQN_With_Prioritised_Experience_Replay import DDQN_With_Prioritised_Experience_Replay
+from agents.DQN_agents.DRQN import DRQN
+
+from models.FCNN import FCNN
 
 from gym.core import Wrapper
 
 config = Config()
 
-config.environment = Wrapper(SimpleISC())
-config.num_episodes_to_run = 5
+config.environment = Wrapper(SimpleISC(mode="DISCRETE"))
+config.num_episodes_to_run = 50
 
-config.file_to_save_data_results = "data_and_graphs/IllinoisSolarCar_Results_Data.pkl"
-config.file_to_save_results_graph = "data_and_graphs/IllinoisSolarCar_Results_Graph.png"
+config.file_to_save_data_results = "data_and_graphs/ISC/IllinoisSolarCar_Results_Data.pkl"
+config.file_to_save_results_graph = "data_and_graphs/ISC/IllinoisSolarCar_Results_Graph.png"
 config.show_solution_score = True
 config.visualise_individual_results = True
 config.visualise_overall_agent_results = True
@@ -40,11 +43,11 @@ config.hyperparameters = {
         "alpha_prioritised_replay": 0.6,
         "beta_prioritised_replay": 0.1,
         "incremental_td_error": 1e-8,
-        "update_every_n_steps": 1,
+        "update_every_n_steps": 15,
         "tau": 1e-2,
-        "linear_hidden_units": [256, 256, 256],
-        "final_layer_activation": None,
-        "y_range": (-1, 14),
+        "linear_hidden_units": [256, 256],
+        "final_layer_activation": "softmax",
+        # "y_range": (-1, 14),
         "batch_norm": False,
         "gradient_clipping_norm": 5,
         "HER_sample_proportion": 0.8,
@@ -53,8 +56,11 @@ config.hyperparameters = {
     }
 }
 
+config.model = FCNN()
+
 if __name__== '__main__':
-    AGENTS = [DQN]#, DDQN, Dueling_DDQN, DDQN_With_Prioritised_Experience_Replay]
+    AGENTS = [DQN, DRQN, ]#DDQN, Dueling_DDQN, DDQN_With_Prioritised_Experience_Replay]
+
     trainer = Trainer(config, AGENTS)
     trainer.run_games_for_agents()
 

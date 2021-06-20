@@ -3,56 +3,39 @@ from gym import spaces
 from gym.utils import seeding
 
 from math import sin, cos, pi
-from dateutil import tz
 import numpy as np
 import datetime
 
-config = {
-
-    "STEPS_IN_EPISODE": 250, # How many steps in an episode (day).
-    "MAX_SPEED": 35, # In m/s.
-    "INITIAL_SPEED": 0,
-    "ACCELERATION": 2.5,
-    "DECELERATION": 1.5,
-    "STATE_SIZE": 6, # Number of things the agent can see from the environment.
-    "ACTION_SIZE": 3,
-
-    "START_TIME": datetime.datetime.timestamp(datetime.datetime(2021, 7, 21, 8, 0, tzinfo=tz.tzoffset('CST', -5*3600))), # 8:00 AM someday in july
-    "END_TIME": datetime.datetime.timestamp(datetime.datetime(2021, 7, 21, 17, 0, tzinfo=tz.tzoffset('CST', -5*3600))), # 5:00 PM that day
-
-    "PACK_VOLTAGE": 100,
-    "BATTERY_CAPACITY": 5200 * 3600, # In Ws (Watt-second)
-    "REGENERATIVE_BREAK_EFFICIENCY": 0.1,
-    "MASS": 250,
-    "FRONTAL_AREA": 0.78,
-    "COEFFICIENT_OF_DRAG": 0.116,
-    "IDLE_POWER": 0.39,
-    "START_SOC": 1, # Choose an initial state of charge (percentage) for the battery at the beginning of the day.
-}
-
+from .ISC_Config import ISC_Config
 
 class SimpleISC(gym.Env):
     metadata = {'render.mode': ['human']}
 
-    def __init__(self):
+    def __init__(self, mode="DISCRETE", config=ISC_Config()):
+        # Save environment configurations.
+        self.config = config
+        self.mode = mode
+
         # Gym requirement.
-        self.action_space = spaces.Discrete(config["ACTION_SIZE"])
-        self.observation_space = spaces.Box(
-            low=0,
-            high=1,
-            shape=(config["STATE_SIZE"],)
-        )
+        if mode is "DISCRETE":
+            self.action_space = spaces.Discrete(config.action_size_discrete)
+        elif mode is "CONTINUOUS":
+            self.action_space = spaces.Box(low=-1, high=1, shape=(self.config.action_size_continuous,))
+        else:
+            raise RuntimeError(f"Invalid environment mode \"{mode}\".")
+
+        self.observation_space = spaces.Box(low=0, high=1, shape=(self.config.state_size,))
         self.reward_threshold = 0.0
         self.trials = 10
 
         # Setting all constants.
-        self.speed = config["INITIAL_SPEED"]
+        self.speed = self.config.initial_speed
 
         self.HIGHEST_SOLAR_POWER = self._get_solar_power(1601294400, latitude=0, longitude=0)
-        self.MAX_DISTANCE = config["MAX_SPEED"] * (config["END_TIME"] - config["START_TIME"])
+        self.MAX_DISTANCE = self.config.max_speed * (self.config.end_time - self.config.start_time)
         self.reward_range = np.array([0, self.MAX_DISTANCE])
 
-        self.TIMES = np.linspace(config["START_TIME"], config["END_TIME"], config["STEPS_IN_EPISODE"])
+        self.TIMES = np.linspace(self.config.start_time, self.config.end_time, self.config.steps_in_episode)
         self.TDIFF = self.TIMES[1] - self.TIMES[0]
 
         self.SOLAR = self._get_solar_power_array(self.TIMES)
@@ -63,13 +46,13 @@ class SimpleISC(gym.Env):
     def reset(self):
         # Some working variables.
         self.current_step = 0
-        self.speed = config["INITIAL_SPEED"]
+        self.speed = self.config.initial_speed
 
         # Stats to keep track of.
         self.current_power_used = 0
         self.current_net_power = self.SOLAR[0]
         self.current_net_energy = self.SOLAR[0] * self.TDIFF
-        self.soc = config["START_SOC"]
+        self.soc = self.config.initial_soc
         self.distance_traveled_in_step = 0
         self.velocities = [0]
         self.total_distance_traveled = 0
@@ -86,7 +69,7 @@ class SimpleISC(gym.Env):
         self.current_net_power = self.SOLAR[self.current_step] - self.current_power_used
         self.current_net_energy = self.current_net_energy + self.current_net_power * self.TDIFF
 
-        self.soc = min((self.current_net_energy / config["BATTERY_CAPACITY"]) + config["START_SOC"], 1)
+        self.soc = min((self.current_net_energy / self.config.battery_capacity) + self.config.initial_soc, 1)
 
         self.distance_traveled_in_step = self.speed * self.TDIFF
         self.total_distance_traveled += self.distance_traveled_in_step
@@ -98,7 +81,7 @@ class SimpleISC(gym.Env):
         reward = self.distance_traveled_in_step // 1_000
 
         # Check if done
-        done = (self.current_step >= config["STEPS_IN_EPISODE"]) or (self.soc <= 0)
+        done = (self.current_step >= self.config.steps_in_episode) or (self.soc <= 0)
 
         return self._get_observation(), reward, done, {}
 
@@ -117,20 +100,24 @@ class SimpleISC(gym.Env):
 
     def _take_action(self, action):
         # Discrete(3) == [0, 1, 2]
-        if action == 0: # Decelerate
-            self.speed -= config["DECELERATION"]
+        if self.mode is "DISCRETE":
+            if action == 0: # Decelerate
+                self.speed -= self.config.deceleration
 
-        elif action == 2: # Accelerate.
-            self.speed += config["ACCELERATION"]
+            elif action == 2: # Accelerate.
+                self.speed += self.config.acceleration
+
+        elif self.mode is "CONTINUOUS":
+            self.speed += np.interp(action, [-1, 1], [-self.config.deceleration, self.config.acceleration])
 
     def _get_observation(self):
         return np.array([
             self.current_net_power / self.HIGHEST_SOLAR_POWER,
             self.current_net_energy / (self.HIGHEST_SOLAR_POWER * self.TDIFF),
             self.total_distance_traveled / self.MAX_DISTANCE,
-            self.current_step / config["STEPS_IN_EPISODE"],
+            self.current_step / self.config.steps_in_episode,
             self.soc,
-            self.velocities[-1] / config["MAX_SPEED"],
+            self.velocities[-1] / self.config.max_speed,
         ], dtype=np.float32)
 
     def get_score_to_win(self):
@@ -196,10 +183,10 @@ class SimpleISC(gym.Env):
         """
         rads = np.arctan(slope / 100)
 
-        aero_loss = ((velocity) ** 2 * 0.5 * 1.225 * config["FRONTAL_AREA"] * config["COEFFICIENT_OF_DRAG"]) * velocity
+        aero_loss = ((velocity) ** 2 * 0.5 * 1.225 * self.config.frontal_area * self.config.coefficient_of_drag) * velocity
         rolling_loss = .8 / (.588 / 2) * 4 * velocity
-        hill_loss = (9.81 * config["MASS"] * velocity * np.sin(rads))
+        hill_loss = (9.81 * self.config.mass * velocity * np.sin(rads))
         if (hill_loss < 0):
-            hill_loss *= config["REGENERATIVE_BREAK_EFFICIENCY"]
+            hill_loss *= self.config.regenerative_break_efficiency
 
-        return 1.3 * (aero_loss + rolling_loss + hill_loss) + (config["IDLE_POWER"] * config["PACK_VOLTAGE"])
+        return 1.3 * (aero_loss + rolling_loss + hill_loss) + (self.config.idle_power * self.config.pack_voltage)

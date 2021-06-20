@@ -9,25 +9,19 @@ from agents.Base_Agent import Base_Agent
 from exploration_strategies.Epsilon_Greedy_Exploration import Epsilon_Greedy_Exploration
 from utilities.data_structures.Replay_Buffer import Replay_Buffer
 
-class DQN(Base_Agent):
-    """A deep Q learning agent"""
-    agent_name = "DQN"
+class DRQN(Base_Agent):
+    """A deep recurrent Q learning agent"""
+    agent_name = "DRQN"
     def __init__(self, config):
         Base_Agent.__init__(self, config)
         self.memory = Replay_Buffer(self.hyperparameters["buffer_size"], self.hyperparameters["batch_size"], config.seed, self.device)
-
-        # If model is not provided, create one. TODO Add this mechanism to all agents.
-        if self.hyperparameters["model"] is None:
-            self.q_network_local = self.create_NN(input_dim=self.state_size, output_dim=self.action_size)
-        else:
-            self.q_network_local = self.hyperparameters["model"]
-
+        self.q_network_local = self.create_NN(input_dim=self.state_size, output_dim=self.action_size) # TODO: Change NN
         self.q_network_optimizer = optim.Adam(self.q_network_local.parameters(),
                                               lr=self.hyperparameters["learning_rate"], eps=1e-4)
         self.exploration_strategy = Epsilon_Greedy_Exploration(config)
 
     def reset_game(self):
-        super(DQN, self).reset_game()
+        super(DRQN, self).reset_game()
         self.update_learning_rate(self.hyperparameters["learning_rate"], self.q_network_optimizer)
 
     def step(self):
