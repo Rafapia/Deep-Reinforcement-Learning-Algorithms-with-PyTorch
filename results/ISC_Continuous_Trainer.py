@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0, '../')
+
 from environments.isc_environments.SimpleISC import SimpleISC
 from utilities.data_structures.Config import Config
 from agents.Trainer import Trainer

@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0, '../')
+
 from environments.isc_environments.SimpleISC import SimpleISC
 from utilities.data_structures.Config import Config
 from agents.Trainer import Trainer
@@ -11,7 +14,6 @@ from agents.DQN_agents.DRQN import DRQN
 from models.FCNN import FCNN
 
 from gym.core import Wrapper
-
 from torch.cuda import is_available
 
 config = Config()
@@ -61,7 +63,7 @@ config.hyperparameters = {
 config.model = FCNN()
 
 if __name__== '__main__':
-    AGENTS = [DQN, DRQN, ]#DDQN, Dueling_DDQN, DDQN_With_Prioritised_Experience_Replay]
+    AGENTS = [DQN, DDQN, Dueling_DDQN, DDQN_With_Prioritised_Experience_Replay]
 
     trainer = Trainer(config, AGENTS)
     trainer.train()
