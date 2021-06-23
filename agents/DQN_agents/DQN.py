@@ -19,7 +19,7 @@ class DQN(Base_Agent):
         self.memory = Replay_Buffer(self.hyperparameters["buffer_size"], self.hyperparameters["batch_size"], config.seed, self.device)
 
         # If model is not provided, create one. TODO Add this mechanism to all agents.
-        if self.hyperparameters["model"] is None:
+        if not "model" in self.hyperparameters or self.hyperparameters["model"] is None:
             self.q_network_local = self.create_NN(input_dim=self.state_size, output_dim=self.action_size)
         else:
             self.q_network_local = self.hyperparameters["model"]
