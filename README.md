@@ -5,7 +5,7 @@
 
 
 
-![RL](utilities/RL_image.jpeg)   ![PyTorch](utilities/PyTorch-logo-2.jpg)
+![RL](RL_image.jpeg)   ![PyTorch](PyTorch-logo-2.jpg)
 
 This repository contains PyTorch implementations of deep reinforcement learning algorithms and environments. 
 
