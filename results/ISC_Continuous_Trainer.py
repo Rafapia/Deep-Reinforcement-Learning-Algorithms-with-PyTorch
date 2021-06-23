@@ -77,6 +77,6 @@ if __name__ == '__main__':
     AGENTS = [A2C, A3C, DDPG, DDPG_HER]
 
     trainer = Trainer(config, AGENTS)
-    trainer.run_games_for_agents()
+    trainer.train()
 
 

@@ -9,8 +9,11 @@ class ISC_Config(object):
 
         self.initial_speed = 0  # In m/s.
         self.initial_soc = 1.0
-        self.start_time = datetime.datetime.timestamp(datetime.datetime(2021, 7, 21, 8, 0, tzinfo=tz.tzoffset('CST', -5*3600)))     # 8:00 AM someday in july
-        self.end_time = datetime.datetime.timestamp(datetime.datetime(2021, 7, 21, 17, 0, tzinfo=tz.tzoffset('CST', -5*3600)))      # 5:00 PM that day
+
+        self.start_time = datetime.datetime.timestamp(
+            datetime.datetime(2021, 7, 21, 8, 0, tzinfo=tz.tzoffset('CST', -5*3600)))     # 8:00 AM someday in July
+        self.end_time = datetime.datetime.timestamp(
+            datetime.datetime(2021, 7, 21, 17, 0, tzinfo=tz.tzoffset('CST', -5*3600)))    # 5:00 PM that day
 
         # Car properties and constants.
         self.pack_voltage = 100
@@ -23,6 +26,7 @@ class ISC_Config(object):
         self.acceleration = 2.5
         self.deceleration = 1.5
 
+        # TODO: Maybe dynamically sample this from env?
         # Environment settings.
         self.state_size = 6
 

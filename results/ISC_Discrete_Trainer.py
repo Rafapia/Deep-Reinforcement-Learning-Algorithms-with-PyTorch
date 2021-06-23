@@ -12,6 +12,8 @@ from models.FCNN import FCNN
 
 from gym.core import Wrapper
 
+from torch.cuda import is_available
+
 config = Config()
 
 config.environment = Wrapper(SimpleISC(mode="DISCRETE"))
@@ -24,7 +26,7 @@ config.visualise_individual_results = True
 config.visualise_overall_agent_results = True
 config.standard_deviation_results = 1.0
 config.runs_per_agent = 1
-config.use_GPU = False
+config.use_GPU = is_available()
 config.overwrite_existing_results_file = True
 config.randomise_random_seed = False
 config.save_model = False
@@ -62,6 +64,6 @@ if __name__== '__main__':
     AGENTS = [DQN, DRQN, ]#DDQN, Dueling_DDQN, DDQN_With_Prioritised_Experience_Replay]
 
     trainer = Trainer(config, AGENTS)
-    trainer.run_games_for_agents()
+    trainer.train()
 
 

@@ -62,6 +62,6 @@ if __name__== '__main__':
     AGENTS = [DQN, DRQN, ]#DDQN, Dueling_DDQN, DDQN_With_Prioritised_Experience_Replay]
 
     trainer = Trainer(config, AGENTS)
-    trainer.run_games_for_agents()
+    trainer.train()
 
 

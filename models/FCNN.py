@@ -6,3 +6,6 @@ class FCNN(nn.Module):
     def __init__(self):
         super(FCNN, self).__init__()
         # TODO
+
+    def forward(self, x):
+        pass

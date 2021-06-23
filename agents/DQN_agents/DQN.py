@@ -12,8 +12,10 @@ from utilities.data_structures.Replay_Buffer import Replay_Buffer
 class DQN(Base_Agent):
     """A deep Q learning agent"""
     agent_name = "DQN"
+
     def __init__(self, config):
         Base_Agent.__init__(self, config)
+
         self.memory = Replay_Buffer(self.hyperparameters["buffer_size"], self.hyperparameters["batch_size"], config.seed, self.device)
 
         # If model is not provided, create one. TODO Add this mechanism to all agents.

@@ -183,7 +183,7 @@ config.hyperparameters = {
 def test_agent_solve_bit_flipping_game():
     AGENTS = [PPO, DDQN, DQN_With_Fixed_Q_Targets, DDQN_With_Prioritised_Experience_Replay, DQN, DQN_HER]
     trainer = Trainer(config, AGENTS)
-    results = trainer.run_games_for_agents()
+    results = trainer.train()
     for agent in AGENTS:
         agent_results = results[agent.agent_name]
         agent_results = np.max(agent_results[0][1][50:])
@@ -195,14 +195,14 @@ def test_agents_can_play_games_of_different_dimensions():
     AGENTS = [A2C, A3C, PPO, DDQN, DQN_With_Fixed_Q_Targets, DDQN_With_Prioritised_Experience_Replay, DQN]
     trainer = Trainer(config, AGENTS)
     config.environment = gym.make("CartPole-v0")
-    results = trainer.run_games_for_agents()
+    results = trainer.train()
     for agent in AGENTS:
         assert agent.agent_name in results.keys()
 
     AGENTS = [SAC, TD3, PPO, DDPG]
     config.environment = gym.make("MountainCarContinuous-v0")
     trainer = Trainer(config, AGENTS)
-    results = trainer.run_games_for_agents()
+    results = trainer.train()
     for agent in AGENTS:
         assert agent.agent_name in results.keys()
 
@@ -210,6 +210,6 @@ def test_agents_can_play_games_of_different_dimensions():
     config.environment = Four_Rooms_Environment(15, 15, stochastic_actions_probability=0.25,
                                                 random_start_user_place=True, random_goal_place=False)
     trainer = Trainer(config, AGENTS)
-    results = trainer.run_games_for_agents()
+    results = trainer.train()
     for agent in AGENTS:
         assert agent.agent_name in results.keys()
