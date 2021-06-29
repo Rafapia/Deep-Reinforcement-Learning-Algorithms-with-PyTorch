@@ -25,13 +25,14 @@ class Base_Agent(object):
         self.debug_mode = config.debug_mode
 
         # Setup WandB.
-        self.wandb_run = wandb.init(project="DRL",
-                                    entity="rafael_piacsek",
-                                    config=self.config.hyperparameters,
-                                    save_code=False,
-                                    group=agent_name,
-                                    job_type="train",
-                                    tags="testing")
+        if self.config.wandb_log:
+            self.wandb_run = wandb.init(project="DRL",
+                                        entity=self.config.wandb_entity,
+                                        config=self.config.hyperparameters,
+                                        save_code=self.config.save_model,
+                                        group=agent_name,
+                                        job_type=self.config.wandb_job_type,
+                                        tags=self.config.wandb_tags)
 
         # if self.debug_mode: self.tensorboard = SummaryWriter()
         self.set_random_seeds(config.seed)
@@ -226,14 +227,6 @@ class Base_Agent(object):
         self.logger.info(f"Rolling score window: {self.rolling_score_window}")
         self.logger.info(f"Device: {self.device}")
 
-    def log_information_wandb(self, dict, step, commit=False):
-        """Logs a series of datapoints using wandb"""
-        wandb.log(dict, step=step, commit=commit)
-
-    def log_model_wadb(self, model, criterion=None, log=None, log_freq=None, idx=None):
-        """Watches a model through wandb"""
-        wandb.watch(model, criterion, log, log_freq, idx)
-
     def set_random_seeds(self, random_seed):
         """Sets all possible random seeds so results can be reproduced"""
         os.environ['PYTHONHASHSEED'] = str(random_seed)
@@ -297,12 +290,13 @@ class Base_Agent(object):
             self.step()
             self.save_result()
 
-            wandb.log(dict(episode_number=self.episode_number,
-                           episode_score=self.game_full_episode_scores[-1],
-                           rolling_episode_score=self.rolling_results[-1],
-                           max_episode_score=self.max_episode_score_seen,
-                           ),
-                      step=self.global_step_number)
+            self.wandb_log(dict(episode_number=self.episode_number,
+                                episode_score=self.game_full_episode_scores[-1],
+                                rolling_episode_score=self.rolling_results[-1],
+                                max_episode_score=self.max_episode_score_seen,
+                                ),
+                           step=self.global_step_number,
+                           commit=True)
 
             if save_and_print_results:
                 self.print_rolling_result()
@@ -314,9 +308,12 @@ class Base_Agent(object):
 
         if self.config.save_model:
             self.locally_save_policy()
-            #wandb.save() TODO: https://docs.wandb.ai/ref/python/save
 
-        wandb.finish()
+            if self.config.wandb_log:
+                wandb.save()    # TODO: https://docs.wandb.ai/ref/python/save
+
+        if self.config.wandb_log:
+            wandb.finish()
 
         return self.game_full_episode_scores, self.rolling_results, time_taken
 
@@ -453,6 +450,16 @@ class Base_Agent(object):
             break
 
         self.logger.info("Learning Rate {}".format(learning_rate))
+
+    def wandb_log(self, dict, step, commit=False):
+        """Logs a series of datapoints using wandb"""
+        if self.config.wandb_log:
+            wandb.log(dict, step=step, commit=commit)
+
+    def wandb_watch(self, model, criterion=None, log="all", log_freq=None, idx=None):
+        """Watches a model through wandb"""
+        if self.config.wandb_log:
+            wandb.watch(model, criterion, log, log_freq, idx)
 
     def locally_save_policy(self):
         """Saves the model to a file."""

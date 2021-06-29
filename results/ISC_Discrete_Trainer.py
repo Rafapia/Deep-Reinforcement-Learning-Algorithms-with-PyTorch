@@ -34,6 +34,7 @@ config.randomise_random_seed = False
 config.save_model = False
 config.seed = 0
 config.debug_mode = True
+config.wandb_log = True
 
 
 config.hyperparameters = {
@@ -63,7 +64,7 @@ config.hyperparameters = {
 config.model = FCNN()
 
 if __name__== '__main__':
-    AGENTS = [DQN]#, DDQN, Dueling_DDQN, DDQN_With_Prioritised_Experience_Replay]
+    AGENTS = [DQN, DDQN, Dueling_DDQN, DDQN_With_Prioritised_Experience_Replay]
 
     trainer = Trainer(config, AGENTS)
     trainer.train()

@@ -12,13 +12,15 @@ from utilities.data_structures.Replay_Buffer import Replay_Buffer
 class DRQN(Base_Agent):
     """A deep recurrent Q learning agent"""
     agent_name = "DRQN"
-    def __init__(self, config):
-        Base_Agent.__init__(self, config)
+    def __init__(self, config, agent_name_=agent_name):
+        Base_Agent.__init__(self, config, agent_name=agent_name_)
         self.memory = Replay_Buffer(self.hyperparameters["buffer_size"], self.hyperparameters["batch_size"], config.seed, self.device)
         self.q_network_local = self.create_NN(input_dim=self.state_size, output_dim=self.action_size) # TODO: Change NN
         self.q_network_optimizer = optim.Adam(self.q_network_local.parameters(),
                                               lr=self.hyperparameters["learning_rate"], eps=1e-4)
         self.exploration_strategy = Epsilon_Greedy_Exploration(config)
+
+        self.wandb_watch(self.q_network_local, log_freq=self.config.wandb_model_log_freq)
 
     def reset_game(self):
         super(DRQN, self).reset_game()
@@ -64,6 +66,8 @@ class DRQN(Base_Agent):
         actions_list = [action_X.item() for action_X in actions ]
 
         self.logger.info("Action counts {}".format(Counter(actions_list)))
+        self.wandb_log(dict(loss=loss),
+                       step=self.global_step_number)
         self.take_optimisation_step(self.q_network_optimizer, self.q_network_local, loss, self.hyperparameters["gradient_clipping_norm"])
 
     def compute_loss(self, states, next_states, rewards, actions, dones):

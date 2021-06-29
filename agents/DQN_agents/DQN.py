@@ -13,8 +13,8 @@ class DQN(Base_Agent):
     """A deep Q learning agent"""
     agent_name = "DQN"
 
-    def __init__(self, config):
-        Base_Agent.__init__(self, config, agent_name=self.agent_name)
+    def __init__(self, config, agent_name_=agent_name):
+        Base_Agent.__init__(self, config, agent_name=agent_name_)
 
         self.memory = Replay_Buffer(self.hyperparameters["buffer_size"], self.hyperparameters["batch_size"], config.seed, self.device)
 
@@ -24,7 +24,7 @@ class DQN(Base_Agent):
         else:
             self.q_network_local = self.hyperparameters["model"]
 
-        self.log_model_wadb(self.q_network_local, criterion=None, log="all", log_freq=1000)
+        self.wandb_watch(self.q_network_local, log_freq=self.config.wandb_model_log_freq)
 
         self.q_network_optimizer = optim.Adam(self.q_network_local.parameters(),
                                               lr=self.hyperparameters["learning_rate"], eps=1e-4)
@@ -78,9 +78,8 @@ class DQN(Base_Agent):
         actions_list = [action_X.item() for action_X in actions ]
 
         self.logger.info("Action counts {}".format(Counter(actions_list)))
-        self.log_information_wandb(dict(loss=loss
-                                        ),
-                                   self.global_step_number)
+        self.wandb_log(dict(loss=loss),
+                       self.global_step_number)
 
         self.take_optimisation_step(self.q_network_optimizer, self.q_network_local, loss, self.hyperparameters["gradient_clipping_norm"])
 
