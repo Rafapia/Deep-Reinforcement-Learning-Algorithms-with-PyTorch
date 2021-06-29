@@ -23,9 +23,9 @@ config.num_episodes_to_run = 50
 
 config.file_to_save_data_results = "data_and_graphs/isc/IllinoisSolarCar_Results_Data.pkl"
 config.file_to_save_results_graph = "data_and_graphs/isc/IllinoisSolarCar_Results_Graph.png"
-config.show_solution_score = True
-config.visualise_individual_results = True
-config.visualise_overall_agent_results = True
+config.show_solution_score = False
+config.visualise_individual_results = False
+config.visualise_overall_agent_results = False
 config.standard_deviation_results = 1.0
 config.runs_per_agent = 1
 config.use_GPU = is_available()
@@ -63,9 +63,8 @@ config.hyperparameters = {
 config.model = FCNN()
 
 if __name__== '__main__':
-    AGENTS = [DQN, DDQN, Dueling_DDQN, DDQN_With_Prioritised_Experience_Replay]
+    AGENTS = [DQN]#, DDQN, Dueling_DDQN, DDQN_With_Prioritised_Experience_Replay]
 
     trainer = Trainer(config, AGENTS)
     trainer.train()
-
 

@@ -14,7 +14,7 @@ class DQN(Base_Agent):
     agent_name = "DQN"
 
     def __init__(self, config):
-        Base_Agent.__init__(self, config)
+        Base_Agent.__init__(self, config, agent_name=self.agent_name)
 
         self.memory = Replay_Buffer(self.hyperparameters["buffer_size"], self.hyperparameters["batch_size"], config.seed, self.device)
 
@@ -23,6 +23,8 @@ class DQN(Base_Agent):
             self.q_network_local = self.create_NN(input_dim=self.state_size, output_dim=self.action_size)
         else:
             self.q_network_local = self.hyperparameters["model"]
+
+        self.log_model_wadb(self.q_network_local, criterion=None, log="all", log_freq=1000)
 
         self.q_network_optimizer = optim.Adam(self.q_network_local.parameters(),
                                               lr=self.hyperparameters["learning_rate"], eps=1e-4)
@@ -43,6 +45,7 @@ class DQN(Base_Agent):
             self.save_experience()
             self.state = self.next_state #this is to set the state for the next iteration
             self.global_step_number += 1
+
         self.episode_number += 1
 
     def pick_action(self, state=None):
@@ -65,13 +68,20 @@ class DQN(Base_Agent):
 
     def learn(self, experiences=None):
         """Runs a learning iteration for the Q network"""
-        if experiences is None: states, actions, rewards, next_states, dones = self.sample_experiences() #Sample experiences
-        else: states, actions, rewards, next_states, dones = experiences
+        if experiences is None:
+            states, actions, rewards, next_states, dones = self.sample_experiences() #Sample experiences
+
+        else:
+            states, actions, rewards, next_states, dones = experiences
         loss = self.compute_loss(states, next_states, rewards, actions, dones)
 
         actions_list = [action_X.item() for action_X in actions ]
 
         self.logger.info("Action counts {}".format(Counter(actions_list)))
+        self.log_information_wandb(dict(loss=loss
+                                        ),
+                                   self.global_step_number)
+
         self.take_optimisation_step(self.q_network_optimizer, self.q_network_local, loss, self.hyperparameters["gradient_clipping_norm"])
 
     def compute_loss(self, states, next_states, rewards, actions, dones):

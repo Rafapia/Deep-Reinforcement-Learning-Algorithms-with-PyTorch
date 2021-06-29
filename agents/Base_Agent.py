@@ -6,6 +6,7 @@ import random
 import numpy as np
 import torch
 import time
+import wandb
 # import tensorflow as tf
 from nn_builder.pytorch.NN import NN
 # from tensorboardX import SummaryWriter
@@ -13,12 +14,26 @@ from torch.optim import optimizer
 
 
 class Base_Agent(object):
-    def __init__(self, config):
+    # TODO: Require subclass in init.
+    def __init__(self, config, agent_name):
+        # Save config.
+        self.config = config
+        self.agent_name = agent_name
+
         # Save and setup configurations and helper objects (log, etc.).
         self.logger = self.setup_logger()
         self.debug_mode = config.debug_mode
+
+        # Setup WandB.
+        self.wandb_run = wandb.init(project="DRL",
+                                    entity="rafael_piacsek",
+                                    config=self.config.hyperparameters,
+                                    save_code=False,
+                                    group=agent_name,
+                                    job_type="train",
+                                    tags="testing")
+
         # if self.debug_mode: self.tensorboard = SummaryWriter()
-        self.config = config
         self.set_random_seeds(config.seed)
         self.environment = config.environment
         self.environment_title = self.get_environment_title()
@@ -67,7 +82,7 @@ class Base_Agent(object):
 
         self.log_game_info()
 
-    # TODO: Remain to "run_episode" or similar.
+    # TODO: Rename to "run_episode" or similar.
     def step(self):
         """Runs one episode of the environment to completion. This method must be overridden by all agents"""
         raise ValueError("Step needs to be implemented by the agent")
@@ -211,6 +226,14 @@ class Base_Agent(object):
         self.logger.info(f"Rolling score window: {self.rolling_score_window}")
         self.logger.info(f"Device: {self.device}")
 
+    def log_information_wandb(self, dict, step, commit=False):
+        """Logs a series of datapoints using wandb"""
+        wandb.log(dict, step=step, commit=commit)
+
+    def log_model_wadb(self, model, criterion=None, log=None, log_freq=None, idx=None):
+        """Watches a model through wandb"""
+        wandb.watch(model, criterion, log, log_freq, idx)
+
     def set_random_seeds(self, random_seed):
         """Sets all possible random seeds so results can be reproduced"""
         os.environ['PYTHONHASHSEED'] = str(random_seed)
@@ -272,9 +295,17 @@ class Base_Agent(object):
         while self.episode_number < num_episodes:
             self.reset_game()
             self.step()
+            self.save_result()
+
+            wandb.log(dict(episode_number=self.episode_number,
+                           episode_score=self.game_full_episode_scores[-1],
+                           rolling_episode_score=self.rolling_results[-1],
+                           max_episode_score=self.max_episode_score_seen,
+                           ),
+                      step=self.global_step_number)
 
             if save_and_print_results:
-                self.save_and_print_result()
+                self.print_rolling_result()
 
         time_taken = time.time() - start
 
@@ -283,6 +314,9 @@ class Base_Agent(object):
 
         if self.config.save_model:
             self.locally_save_policy()
+            #wandb.save() TODO: https://docs.wandb.ai/ref/python/save
+
+        wandb.finish()
 
         return self.game_full_episode_scores, self.rolling_results, time_taken
 
@@ -294,11 +328,6 @@ class Base_Agent(object):
 
         if self.hyperparameters["clip_rewards"]:
             self.reward = max(min(self.reward, 1.0), -1.0)
-
-    def save_and_print_result(self):
-        """Saves and prints results of the game"""
-        self.save_result()
-        self.print_rolling_result()
 
     def save_result(self):
         """Saves the result of an episode of the game"""
