@@ -17,8 +17,8 @@ class SAC(Base_Agent):
       https://github.com/pranz24/pytorch-soft-actor-critic. It is an actor-critic algorithm where the agent is also trained
       to maximise the entropy of their actions as well as their cumulative reward"""
     agent_name = "SAC"
-    def __init__(self, config):
-        Base_Agent.__init__(self, config)
+    def __init__(self, config, agent_name_=agent_name):
+        Base_Agent.__init__(self, config, agent_name_=agent_name_)
         assert self.action_types == "CONTINUOUS", "Action types must be continuous. Use SAC Discrete instead for discrete actions"
         assert self.config.hyperparameters["Actor"]["final_layer_activation"] != "Softmax", "Final actor layer must not be softmax"
         self.hyperparameters = config.hyperparameters
@@ -55,6 +55,8 @@ class SAC(Base_Agent):
                                   self.hyperparameters["theta"], self.hyperparameters["sigma"])
 
         self.do_evaluation_iterations = self.hyperparameters["do_evaluation_iterations"]
+
+        self.wandb_watch(self.actor_local, log_freq=self.config.wandb_model_log_freq)
 
     def save_result(self):
         """Saves the result of an episode of the game. Overriding the method in Base Agent that does this because we only
@@ -150,6 +152,9 @@ class SAC(Base_Agent):
         if self.automatic_entropy_tuning: alpha_loss = self.calculate_entropy_tuning_loss(log_pi)
         else: alpha_loss = None
         self.update_actor_parameters(policy_loss, alpha_loss)
+
+        self.wandb_log(dict(loss=policy_loss),
+                       step=self.global_step_number)
 
     def sample_experiences(self):
         return  self.memory.sample()

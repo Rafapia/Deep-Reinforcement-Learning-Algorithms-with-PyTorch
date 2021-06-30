@@ -5,8 +5,8 @@ class A2C(A3C):
     difference between this and the A3C is that gradient updates get done in a batch rather than 1 by 1 as the gradients
     come in"""
     agent_name = "A2C"
-    def __init__(self, config):
-        super(A2C, self).__init__(config)
+    def __init__(self, config, agent_name_=agent_name):
+        super(A2C, self).__init__(config, agent_name_=agent_name_)
 
     def update_shared_model(self, gradient_updates_queue):
         """Worker that updates the shared model with gradients as they get put into the queue"""

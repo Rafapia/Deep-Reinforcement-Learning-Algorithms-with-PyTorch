@@ -5,8 +5,8 @@ class DDPG_HER(HER_Base, DDPG):
     """DDPG algorithm with hindsight experience replay"""
     agent_name = "DDPG-HER"
 
-    def __init__(self, config):
-        DDPG.__init__(self, config)
+    def __init__(self, config, agent_name_=agent_name):
+        DDPG.__init__(self, config, agent_name_=agent_name_)
         HER_Base.__init__(self, self.hyperparameters["Critic"]["buffer_size"], self.hyperparameters["batch_size"],
                           self.hyperparameters["HER_sample_proportion"])
 

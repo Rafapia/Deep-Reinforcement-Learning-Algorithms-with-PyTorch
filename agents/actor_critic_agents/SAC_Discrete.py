@@ -11,8 +11,8 @@ class SAC_Discrete(SAC):
     """The Soft Actor Critic for discrete actions. It inherits from SAC for continuous actions and only changes a few
     methods."""
     agent_name = "SAC"
-    def __init__(self, config):
-        Base_Agent.__init__(self, config)
+    def __init__(self, config, agent_name_=agent_name):
+        Base_Agent.__init__(self, config, agent_name_=agent_name_)
         assert self.action_types == "DISCRETE", "Action types must be discrete. Use SAC instead for continuous actions"
         assert self.config.hyperparameters["Actor"]["final_layer_activation"] == "Softmax", "Final actor layer must be softmax"
         self.hyperparameters = config.hyperparameters
@@ -47,6 +47,8 @@ class SAC_Discrete(SAC):
         assert not self.hyperparameters["add_extra_noise"], "There is no add extra noise option for the discrete version of SAC at moment"
         self.add_extra_noise = False
         self.do_evaluation_iterations = self.hyperparameters["do_evaluation_iterations"]
+
+        self.wandb_watch(self.actor_local, log_freq=self.config.wandb_model_log_freq)
 
     def produce_action_and_action_info(self, state):
         """Given the state, produces an action, the probability of the action, the log probability of the action, and

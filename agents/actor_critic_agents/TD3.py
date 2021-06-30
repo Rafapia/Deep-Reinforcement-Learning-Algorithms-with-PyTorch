@@ -42,13 +42,14 @@ class TD3(DDPG):
         critic_loss_1 = functional.mse_loss(critic_expected_1, critic_targets)
         critic_loss_2 = functional.mse_loss(critic_expected_2, critic_targets)
 
-        self.take_optimisation_step(self.critic_optimizer, self.critic_local, critic_loss_1, self.hyperparameters["Critic"]["gradient_clipping_norm"])
+        self.take_optimisation_step(self.critic_optimizer, self.critic_local, critic_loss_1,
+                                    self.hyperparameters["Critic"]["gradient_clipping_norm"])
         self.take_optimisation_step(self.critic_optimizer_2, self.critic_local_2, critic_loss_2,
                                     self.hyperparameters["Critic"]["gradient_clipping_norm"])
 
         self.soft_update_of_target_network(self.critic_local, self.critic_target, self.hyperparameters["Critic"]["tau"])
         self.soft_update_of_target_network(self.critic_local_2, self.critic_target_2, self.hyperparameters["Critic"]["tau"])
 
-
+        # TODO: Log loss
 
 

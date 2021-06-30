@@ -12,12 +12,14 @@ from utilities.Utility_Functions import create_actor_distribution, SharedAdam
 class A3C(Base_Agent):
     """Actor critic A3C algorithm from deepmind paper https://arxiv.org/pdf/1602.01783.pdf"""
     agent_name = "A3C"
-    def __init__(self, config):
-        super(A3C, self).__init__(config)
+    def __init__(self, config, agent_name_=agent_name):
+        super(A3C, self).__init__(config, agent_name_=agent_name_)
         self.num_processes = multiprocessing.cpu_count()
         self.worker_processes = max(1, self.num_processes - 2)
         self.actor_critic = self.create_NN(input_dim=self.state_size, output_dim=[self.action_size, 1])
         self.actor_critic_optimizer = SharedAdam(self.actor_critic.parameters(), lr=self.hyperparameters["learning_rate"], eps=1e-4)
+
+        self.wandb_watch(self.actor_critic, log_freq=self.config.wandb_model_log_freq)
 
     def run_n_episodes(self):
         """Runs game to completion n times and then summarises results and saves model (if asked to)"""
