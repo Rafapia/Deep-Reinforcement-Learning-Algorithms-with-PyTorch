@@ -5,13 +5,7 @@ from environments.isc_environments.SimpleISC import SimpleISC
 from utilities.data_structures.Config import Config
 from agents.Trainer import Trainer
 
-from agents.DQN_agents.DQN import DQN
-from agents.DQN_agents.DDQN import DDQN
-from agents.DQN_agents.Dueling_DDQN import Dueling_DDQN
-from agents.DQN_agents.DDQN_With_Prioritised_Experience_Replay import DDQN_With_Prioritised_Experience_Replay
-from agents.DQN_agents.DRQN import DRQN
-
-from models.FCNN import FCNN
+from agents.DQN_agents import DQN, DDQN, Dueling_DDQN, DDQN_With_Prioritised_Experience_Replay, DRQN
 
 from gym.core import Wrapper
 from torch.cuda import is_available
@@ -60,8 +54,6 @@ config.hyperparameters = {
         "clip_rewards": False
     }
 }
-
-config.model = FCNN()
 
 if __name__== '__main__':
     AGENTS = [DQN, DDQN, Dueling_DDQN, DDQN_With_Prioritised_Experience_Replay]

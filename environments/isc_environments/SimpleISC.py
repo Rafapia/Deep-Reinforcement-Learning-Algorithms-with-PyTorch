@@ -20,7 +20,7 @@ class SimpleISC(gym.Env):
         if mode is "DISCRETE":
             self.action_space = spaces.Discrete(config.action_size_discrete)
         elif mode is "CONTINUOUS":
-            self.action_space = spaces.Box(low=-1, high=1, shape=(self.config.action_size_continuous,))
+            self.action_space = spaces.Box(low=-1., high=1., shape=(self.config.action_size_continuous,))
         else:
             raise RuntimeError(f"Invalid environment mode \"{mode}\".")
 
