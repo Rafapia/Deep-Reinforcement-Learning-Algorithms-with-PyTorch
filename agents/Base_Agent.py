@@ -14,7 +14,6 @@ from torch.optim import optimizer
 
 
 class Base_Agent(object):
-    # TODO: Require subclass in init.
     def __init__(self, config, agent_name):
         # Save config.
         self.config = config
@@ -493,12 +492,16 @@ class Base_Agent(object):
             if key not in hyperparameters.keys():
                 hyperparameters[key] = default_hyperparameter_choices[key]
 
-        return NN(input_dim=input_dim, layers_info=hyperparameters["linear_hidden_units"] + [output_dim],
+        return NN(input_dim=input_dim,
+                  layers_info=hyperparameters["linear_hidden_units"] + [output_dim],
                   output_activation=hyperparameters["final_layer_activation"],
-                  batch_norm=hyperparameters["batch_norm"], dropout=hyperparameters["dropout"],
-                  hidden_activations=hyperparameters["hidden_activations"], initialiser=hyperparameters["initialiser"],
+                  batch_norm=hyperparameters["batch_norm"],
+                  dropout=hyperparameters["dropout"],
+                  hidden_activations=hyperparameters["hidden_activations"],
+                  initialiser=hyperparameters["initialiser"],
                   columns_of_data_to_be_embedded=hyperparameters["columns_of_data_to_be_embedded"],
-                  embedding_dimensions=hyperparameters["embedding_dimensions"], y_range=hyperparameters["y_range"],
+                  embedding_dimensions=hyperparameters["embedding_dimensions"],
+                  y_range=hyperparameters["y_range"],
                   random_seed=seed).to(self.device)
 
     def turn_on_any_epsilon_greedy_exploration(self):
