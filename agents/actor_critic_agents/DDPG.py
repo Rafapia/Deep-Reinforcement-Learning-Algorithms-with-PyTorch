@@ -9,8 +9,8 @@ class DDPG(Base_Agent):
     """A DDPG Agent"""
     agent_name = "DDPG"
 
-    def __init__(self, config):
-        Base_Agent.__init__(self, config)
+    def __init__(self, config, agent_name_=agent_name):
+        Base_Agent.__init__(self, config, agent_name_=agent_name_)
         self.hyperparameters = config.hyperparameters
         self.critic_local = self.create_NN(input_dim=self.state_size + self.action_size, output_dim=1, key_to_use="Critic")
         self.critic_target = self.create_NN(input_dim=self.state_size + self.action_size, output_dim=1, key_to_use="Critic")
@@ -27,6 +27,8 @@ class DDPG(Base_Agent):
         self.actor_optimizer = optim.Adam(self.actor_local.parameters(),
                                           lr=self.hyperparameters["Actor"]["learning_rate"], eps=1e-4)
         self.exploration_strategy = OU_Noise_Exploration(self.config)
+
+        self.wandb_watch(self.actor_local, log_freq=self.config.wandb_model_log_freq)
 
     def step(self):
         """Runs a step in the game"""
@@ -107,6 +109,9 @@ class DDPG(Base_Agent):
         self.take_optimisation_step(self.actor_optimizer, self.actor_local, actor_loss,
                                     self.hyperparameters["Actor"]["gradient_clipping_norm"])
         self.soft_update_of_target_network(self.actor_local, self.actor_target, self.hyperparameters["Actor"]["tau"])
+
+        self.wandb_log(dict(loss=actor_loss),
+                       step=self.global_step_number)
 
     def calculate_actor_loss(self, states):
         """Calculates the loss for the actor"""
