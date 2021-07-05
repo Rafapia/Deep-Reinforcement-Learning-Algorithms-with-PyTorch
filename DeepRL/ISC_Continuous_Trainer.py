@@ -15,8 +15,8 @@ config = Config()
 config.environment = Wrapper(SimpleISC(mode="DISCRETE"))
 config.num_episodes_to_run = 5
 
-config.file_to_save_data_results = "data_and_graphs/isc/IllinoisSolarCar_Results_Data.pkl"
-config.file_to_save_results_graph = "data_and_graphs/isc/IllinoisSolarCar_Results_Graph.png"
+config.file_to_save_data_results = "results/data_and_graphs/isc/IllinoisSolarCar_Results_Data.pkl"
+config.file_to_save_results_graph = "results/data_and_graphs/isc/IllinoisSolarCar_Results_Graph.png"
 config.show_solution_score = False
 config.visualise_individual_results = False
 config.visualise_overall_agent_results = False

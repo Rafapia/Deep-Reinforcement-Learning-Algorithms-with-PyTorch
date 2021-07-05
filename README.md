@@ -1,8 +1,10 @@
 # Deep Reinforcement Learning Algorithms with PyTorch
 
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/dwyl/esta/issues)
+[![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/tterb/atomic-design-ui/blob/master/LICENSEs)
+[![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/sindresorhus/awesome)  
 
-![ISC](https://lirp.cdn-website.com/ae9fd18b/dms3rep/multi/opt/final_white-232w.png)
+<img src="https://lirp.cdn-website.com/ae9fd18b/dms3rep/multi/opt/final_white-232w.png" width="400">
 
 This repository contains PyTorch implementations of deep reinforcement learning algorithms and environments. 
 It has been forked from **p-christ/Deep-Reinforcement-Learning-Algorithms-with-PyTorch** and modified to learn a custom environment for use in the [Illini Solar Car](https://www.illinisolarcar.com)'s [Brizo](https://www.illinisolarcar.com/brizo) solar-powered car.
@@ -38,6 +40,9 @@ Bit Flipping (discrete actions with dynamic goals) or Fetch Reach (continuous ac
 1. *SimpleISC*
 
 ## **Results**
+
+### Have a peek at our runs over at [Weights & Biases](https://wandb.ai/rafael_piacsek/DRL?workspace=user-rafael_piacsek)
+
 
 #### 1. SimpleISC
 
