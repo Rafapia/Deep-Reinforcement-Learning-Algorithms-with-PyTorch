@@ -30,7 +30,7 @@ class DDPG(Base_Agent):
 
         self.wandb_watch(self.actor_local, log_freq=self.config.wandb_model_log_freq)
 
-    def step(self):
+    def run_episode(self):
         """Runs a step in the game"""
         while not self.done:
             # print("State ", self.state.shape)

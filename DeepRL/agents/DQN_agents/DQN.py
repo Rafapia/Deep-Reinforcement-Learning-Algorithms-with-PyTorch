@@ -34,7 +34,7 @@ class DQN(Base_Agent):
         super(DQN, self).reset_game()
         self.update_learning_rate(self.hyperparameters["learning_rate"], self.q_network_optimizer)
 
-    def step(self):
+    def run_episode(self):
         """Runs a step within a game including a learning step if required"""
         while not self.done:
             self.action = self.pick_action()

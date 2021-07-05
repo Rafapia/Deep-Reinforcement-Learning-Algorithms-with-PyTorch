@@ -41,7 +41,7 @@ class h_DQN(Base_Agent):
         self.update_learning_rate(self.controller_config.hyperparameters["learning_rate"], self.controller.q_network_optimizer)
         self.update_learning_rate(self.meta_controller_config.hyperparameters["learning_rate"], self.meta_controller.q_network_optimizer)
 
-    def step(self):
+    def run_episode(self):
 
         self.episode_steps = 0
 

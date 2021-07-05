@@ -9,7 +9,7 @@ class DQN_HER(HER_Base, DQN):
         HER_Base.__init__(self, self.hyperparameters["buffer_size"], self.hyperparameters["batch_size"],
                           self.hyperparameters["HER_sample_proportion"])
 
-    def step(self):
+    def run_episode(self):
         """Runs a step within a game including a learning step if required"""
         while not self.done:
             self.action = self.pick_action()

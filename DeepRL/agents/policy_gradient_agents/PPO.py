@@ -34,7 +34,7 @@ class PPO(Base_Agent):
         elif self.action_types == "CONTINUOUS":
             return self.action_size * 2 #Because we need 1 parameter for mean and 1 for std of distribution
 
-    def step(self):
+    def run_episode(self):
         """Runs a step for the PPO agent"""
         exploration_epsilon =  self.exploration_strategy.get_updated_epsilon_exploration({"episode_number": self.episode_number})
         self.many_episode_states, self.many_episode_actions, self.many_episode_rewards = self.experience_generator.play_n_episodes(

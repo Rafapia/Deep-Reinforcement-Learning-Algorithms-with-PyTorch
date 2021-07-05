@@ -25,7 +25,7 @@ class REINFORCE(Base_Agent):
         self.episode_log_probabilities = []
         self.episode_step_number = 0
 
-    def step(self):
+    def run_episode(self):
         """Runs a step within a game including a learning step if required"""
         while not self.done:
             self.pick_and_conduct_action_and_save_log_probabilities()

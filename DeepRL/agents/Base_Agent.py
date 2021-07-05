@@ -83,7 +83,7 @@ class Base_Agent(object):
         self.log_game_info()
 
     # TODO: Rename to "run_episode" or similar.
-    def step(self):
+    def run_episode(self):
         """Runs one episode of the environment to completion. This method must be overridden by all agents"""
         raise ValueError("Step needs to be implemented by the agent")
 
@@ -286,7 +286,7 @@ class Base_Agent(object):
         start = time.time()
         while self.episode_number < num_episodes:
             self.reset_game()
-            self.step()
+            self.run_episode()
             self.save_result()
 
             self.wandb_log(dict(episode_number=self.episode_number,

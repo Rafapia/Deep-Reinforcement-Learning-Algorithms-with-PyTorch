@@ -76,7 +76,7 @@ class SAC(Base_Agent):
         Base_Agent.reset_game(self)
         if self.add_extra_noise: self.noise.reset()
 
-    def step(self):
+    def run_episode(self):
         """Runs an episode on the game, saving the experience and running a learning step if appropriate"""
         eval_ep = self.episode_number % TRAINING_EPISODES_PER_EVAL_EPISODE == 0 and self.do_evaluation_iterations
         self.episode_step_number_val = 0
