@@ -5,6 +5,7 @@ import os
 from gym import wrappers
 import numpy as np
 
+
 class Trainer(object):
     """Runs games for given agents. Optionally will visualise and save the results"""
     def __init__(self, config, agent):

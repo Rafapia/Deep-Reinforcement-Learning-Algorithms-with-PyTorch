@@ -7,9 +7,7 @@ import numpy as np
 import torch
 import time
 import wandb
-# import tensorflow as tf
 from nn_builder.pytorch.NN import NN
-# from tensorboardX import SummaryWriter
 from torch.optim import optimizer
 
 
@@ -29,20 +27,16 @@ class Base_Agent(object):
                                         entity=self.config.wandb_entity,
                                         config=self.config.hyperparameters,
                                         save_code=self.config.save_model,
-                                        group=agent_name,
+                                        group=self.agent_name,
                                         job_type=self.config.wandb_job_type,
                                         tags=self.config.wandb_tags)
 
-        # if self.debug_mode: self.tensorboard = SummaryWriter()
         self.set_random_seeds(config.seed)
         self.environment = config.environment
         self.environment_title = self.get_environment_title()
         self.action_types = "DISCRETE" if self.environment.action_space.dtype == np.int64 else "CONTINUOUS"
         self.action_size = int(self.get_action_size())
         self.config.action_size = self.action_size
-
-        # Equals -800 if env is "Taxi", None otherwise.
-        self.lowest_possible_episode_score = self.get_lowest_possible_episode_score()
 
         self.state_size = int(self.get_state_size())
         self.hyperparameters = config.hyperparameters
@@ -188,13 +182,6 @@ class Base_Agent(object):
                     name = name[:-3]
 
         return name
-
-    def get_lowest_possible_episode_score(self):
-        """Returns the lowest possible episode score you can get in an environment"""
-        if self.environment_title == "Taxi":
-            return -800
-
-        return None
 
     def get_action_size(self):
         """Gets the action_size for the gym env into the correct shape for a neural network"""
@@ -468,15 +455,9 @@ class Base_Agent(object):
 
     def log_game_info(self):
         """Logs info relating to the game"""
-        # for ix, param in enumerate([self.environment_title, self.action_types, self.action_size, self.lowest_possible_episode_score,
-        #               self.state_size, self.hyperparameters, self.average_score_required_to_win, self.rolling_score_window,
-        #               self.device]):
-        #     self.logger.info("{} -- {}".format(ix, param))
-
         self.logger.info(f"Environment title: {self.environment_title}")
         self.logger.info(f"Activation types: {self.action_types}")
         self.logger.info(f"Action size: {self.action_size}")
-        self.logger.info(f"Lowest possible ep. score: {self.lowest_possible_episode_score}")
         self.logger.info(f"State size: {self.state_size}")
         self.logger.info(f"Hyperparameters: {self.hyperparameters}")
         self.logger.info(f"Avg. score required to win: {self.average_score_required_to_win}")
