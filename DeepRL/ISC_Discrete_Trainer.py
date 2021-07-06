@@ -11,7 +11,7 @@ from torch.cuda import is_available
 config = Config()
 
 config.environment = Wrapper(SimpleISC(mode="DISCRETE"))
-config.num_episodes_to_run = 10_000
+config.num_episodes_to_run = 2_000
 
 config.file_to_save_data_results = "results/data_and_graphs/isc/IllinoisSolarCar_Results_Data.pkl"
 config.runs_per_agent = 1
@@ -23,10 +23,10 @@ config.model = None
 config.seed = 0
 
 config.debug_mode = True
-config.wandb_log = False
+config.wandb_log = True
 config.wandb_job_type = "testing"
 config.wandb_entity = "rafael_piacsek"
-config.wandb_tags = ["initial testing"]
+config.wandb_tags = ["initial testing", "initial sweep"]
 config.wandb_model_log_freq = 1_000
 
 
@@ -42,7 +42,9 @@ config.hyperparameters = dict(
     incremental_td_error=1e-8,
     update_every_n_steps=15,
     tau=1e-2,
-    linear_hidden_units=[128, 128, 128, 128],
+    num_hidden_layers=2,
+    hidden_layer_size=128,
+    linear_hidden_units=None,       # Either set this, or the previous two.
     final_layer_activation="softmax",
     # y_range=(-1, 14),
     batch_norm=False,
@@ -53,5 +55,5 @@ config.hyperparameters = dict(
 )
 
 if __name__ == '__main__':
-    trainer = Trainer(config, Dueling_DDQN)
+    trainer = Trainer(config, DQN)
     trainer.train()

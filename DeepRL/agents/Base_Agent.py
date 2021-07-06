@@ -57,7 +57,7 @@ class Base_Agent(object):
         gym.logger.set_level(40)  # Stops it from printing an unnecessary warning
 
         # Define some variables used during training.
-        # Reset training datapoints.
+        # Reset training data points.
         self.state = self.environment.reset()
         self.next_state = None
         self.action = None
@@ -354,6 +354,12 @@ class Base_Agent(object):
         else:
             seed = self.config.seed
 
+        # Create local "linear_hidden_units" to avoid wandb error.
+        if hyperparameters['linear_hidden_units'] is None:
+            linear_hidden_units = [hyperparameters['hidden_layer_size']] * hyperparameters['num_hidden_layers']
+        else:
+            linear_hidden_units = hyperparameters['linear_hidden_units']
+
         default_hyperparameter_choices = {"output_activation": None, "hidden_activations": "relu", "dropout": 0.0,
                                           "initialiser": "default", "batch_norm": False,
                                           "columns_of_data_to_be_embedded": [],
@@ -364,7 +370,7 @@ class Base_Agent(object):
                 hyperparameters[key] = default_hyperparameter_choices[key]
 
         return NN(input_dim=input_dim,
-                  layers_info=hyperparameters["linear_hidden_units"] + [output_dim],
+                  layers_info=linear_hidden_units + [output_dim],
                   output_activation=hyperparameters["final_layer_activation"],
                   batch_norm=hyperparameters["batch_norm"],
                   dropout=hyperparameters["dropout"],
