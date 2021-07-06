@@ -168,7 +168,7 @@ class Higher_Level_Agent_Environment_Wrapper(Wrapper):
 
         self.HIRO_agent.goal = goal
         self.HIRO_agent.lower_level_agent.episode_number = 0 #must reset lower level agent to 0 episodes completed otherwise won't run more episodes
-        self.HIRO_agent.lower_level_agent.run_n_episodes(num_episodes=1, show_whether_achieved_goal=False, save_and_print_results=False)
+        self.HIRO_agent.lower_level_agent.run_n_episodes(num_episodes=1, show_whether_achieved_goal=False, print_results=False)
 
         self.HIRO_agent.save_higher_level_experience()
 

@@ -34,3 +34,8 @@ class ISC_Config(object):
         self.action_size_discrete = 3
         # Continuous
         self.action_size_continuous = 1
+
+        # Required to win = 964 km.
+        self.reward_threshold = 964
+        self.trials = 100
+        self.max_episode_steps = self.steps_in_episode

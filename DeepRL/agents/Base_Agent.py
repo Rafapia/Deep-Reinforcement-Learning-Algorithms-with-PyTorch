@@ -82,11 +82,80 @@ class Base_Agent(object):
 
         self.log_game_info()
 
-    # TODO: Rename to "run_episode" or similar.
+    """ Main running methods."""
+    def reset_game(self):
+        """Resets the game information so we are ready to play a new episode"""
+        self.environment.seed(self.config.seed)
+
+        # Reset training data points.
+        self.state = self.environment.reset()
+        self.next_state = None
+        self.action = None
+        self.reward = None
+        self.done = False
+
+        # Reset episode-wise tracking objects.
+        self.total_episode_score_so_far = 0
+        self.episode_states = []
+        self.episode_rewards = []
+        self.episode_actions = []
+        self.episode_next_states = []
+        self.episode_dones = []
+        self.episode_desired_goals = []
+        self.episode_achieved_goals = []
+        self.episode_observations = []
+
+        # If there is an exploration_strategy defined on the subclass, reset it.
+        if "exploration_strategy" in self.__dict__.keys():
+            self.exploration_strategy.reset()
+
+        self.logger.info("Resetting game -- New start state {}".format(self.state))
+
     def run_episode(self):
         """Runs one episode of the environment to completion. This method must be overridden by all agents"""
         raise ValueError("Step needs to be implemented by the agent")
 
+    def run_n_episodes(self, num_episodes=None, show_whether_achieved_goal=True, print_results=True):
+        """Runs game to completion n times and then summarises results and saves model (if asked to)"""
+        # If num_episodes is not specified, get it from the config.
+        if num_episodes is None:
+            num_episodes = self.config.num_episodes_to_run
+
+        start = time.time()
+        while self.episode_number < num_episodes:
+            self.reset_game()
+            self.run_episode()
+            self.save_result()
+
+            self.wandb_log(dict(episode_number=self.episode_number,
+                                episode_score=self.game_full_episode_scores[-1],
+                                rolling_episode_score=self.rolling_results[-1],
+                                max_episode_score=self.max_episode_score_seen,
+                                ),
+                           step=self.global_step_number,    # TODO: Fix synchronization issue.
+                           commit=True)
+
+            if print_results:
+                self.print_rolling_result()
+
+        time_taken = time.time() - start
+
+        if show_whether_achieved_goal:
+            self.show_whether_achieved_goal()
+
+        if self.config.save_model:
+            self.locally_save_policy()
+
+            if self.config.wandb_log:
+                wandb.save()    # TODO: https://docs.wandb.ai/ref/python/save
+
+        if self.config.wandb_log:
+            wandb.finish()
+
+        return self.game_full_episode_scores, self.rolling_results, time_taken
+
+
+    """Environment helper methods."""
     def get_environment_title(self):
         """Extracts name of environment"""
         try:
@@ -182,57 +251,14 @@ class Base_Agent(object):
         except AttributeError:
             return self.environment.spec.trials
 
-    def setup_logger(self):
-        """Sets up the logger"""
-        filename = "Training.log"
 
-        try:
-            if os.path.isfile(filename):
-                os.remove(filename)
-        except:
-            pass
-
-        # Get logger and ser level.
-        logger = logging.getLogger(__name__)
-        logger.setLevel(logging.INFO)
-
-        # Create a file handler.
-        handler = logging.FileHandler(filename)
-        handler.setLevel(logging.INFO)
-
-        # Create a logging format.
-        formatter = logging.Formatter('%(asctime)s [%(process)d] %(name)s - %(levelname)s - %(message)s')
-        handler.setFormatter(formatter)
-
-        # Add the handlers to the logger.
-        logger.addHandler(handler)
-
-        return logger
-
-    def log_game_info(self):
-        """Logs info relating to the game"""
-        # for ix, param in enumerate([self.environment_title, self.action_types, self.action_size, self.lowest_possible_episode_score,
-        #               self.state_size, self.hyperparameters, self.average_score_required_to_win, self.rolling_score_window,
-        #               self.device]):
-        #     self.logger.info("{} -- {}".format(ix, param))
-
-        self.logger.info(f"Environment title: {self.environment_title}")
-        self.logger.info(f"Activation types: {self.action_types}")
-        self.logger.info(f"Action size: {self.action_size}")
-        self.logger.info(f"Lowest possible ep. score: {self.lowest_possible_episode_score}")
-        self.logger.info(f"State size: {self.state_size}")
-        self.logger.info(f"Hyperparameters: {self.hyperparameters}")
-        self.logger.info(f"Avg. score required to win: {self.average_score_required_to_win}")
-        self.logger.info(f"Rolling score window: {self.rolling_score_window}")
-        self.logger.info(f"Device: {self.device}")
-
+    """ Other helper methods."""
     def set_random_seeds(self, random_seed):
         """Sets all possible random seeds so results can be reproduced"""
         os.environ['PYTHONHASHSEED'] = str(random_seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
         torch.manual_seed(random_seed)
-        # tf.set_random_seed(random_seed)
         random.seed(random_seed)
         np.random.seed(random_seed)
         if torch.cuda.is_available():
@@ -240,34 +266,6 @@ class Base_Agent(object):
             torch.cuda.manual_seed(random_seed)
         if hasattr(gym.spaces, 'prng'):
             gym.spaces.prng.seed(random_seed)
-
-    def reset_game(self):
-        """Resets the game information so we are ready to play a new episode"""
-        self.environment.seed(self.config.seed)
-
-        # Reset training datapoints.
-        self.state = self.environment.reset()
-        self.next_state = None
-        self.action = None
-        self.reward = None
-        self.done = False
-
-        # Reset episode-wise tracking objects.
-        self.total_episode_score_so_far = 0
-        self.episode_states = []
-        self.episode_rewards = []
-        self.episode_actions = []
-        self.episode_next_states = []
-        self.episode_dones = []
-        self.episode_desired_goals = []
-        self.episode_achieved_goals = []
-        self.episode_observations = []
-
-        # If there is an exploration_strategy defined on the subclass, reset it.
-        if "exploration_strategy" in self.__dict__.keys():
-            self.exploration_strategy.reset()
-
-        self.logger.info("Resetting game -- New start state {}".format(self.state))
 
     def track_current_episode_data(self):
         """Saves the data from the recent episodes"""
@@ -277,45 +275,6 @@ class Base_Agent(object):
         self.episode_next_states.append(self.next_state)
         self.episode_dones.append(self.done)
 
-    def run_n_episodes(self, num_episodes=None, show_whether_achieved_goal=True, save_and_print_results=True):
-        """Runs game to completion n times and then summarises results and saves model (if asked to)"""
-        # if num_episodes is not specified, get it from the config.
-        if num_episodes is None:
-            num_episodes = self.config.num_episodes_to_run
-
-        start = time.time()
-        while self.episode_number < num_episodes:
-            self.reset_game()
-            self.run_episode()
-            self.save_result()
-
-            self.wandb_log(dict(episode_number=self.episode_number,
-                                episode_score=self.game_full_episode_scores[-1],
-                                rolling_episode_score=self.rolling_results[-1],
-                                max_episode_score=self.max_episode_score_seen,
-                                ),
-                           step=self.global_step_number,
-                           commit=True)
-
-            if save_and_print_results:
-                self.print_rolling_result()
-
-        time_taken = time.time() - start
-
-        if show_whether_achieved_goal:
-            self.show_whether_achieved_goal()
-
-        if self.config.save_model:
-            self.locally_save_policy()
-
-            if self.config.wandb_log:
-                wandb.save()    # TODO: https://docs.wandb.ai/ref/python/save
-
-        if self.config.wandb_log:
-            wandb.finish()
-
-        return self.game_full_episode_scores, self.rolling_results, time_taken
-
     def conduct_action(self, action):
         """Conducts an action in the environment"""
         self.next_state, self.reward, self.done, _ = self.environment.step(action)
@@ -324,42 +283,6 @@ class Base_Agent(object):
 
         if self.hyperparameters["clip_rewards"]:
             self.reward = max(min(self.reward, 1.0), -1.0)
-
-    def save_result(self):
-        """Saves the result of an episode of the game"""
-        self.game_full_episode_scores.append(self.total_episode_score_so_far)
-        self.rolling_results.append(np.mean(self.game_full_episode_scores[-1 * self.rolling_score_window:]))
-        self.save_max_result_seen()
-
-    def save_max_result_seen(self):
-        """Updates the best episode result seen so far"""
-        if self.game_full_episode_scores[-1] > self.max_episode_score_seen:
-            self.max_episode_score_seen = self.game_full_episode_scores[-1]
-
-        if self.rolling_results[-1] > self.max_rolling_score_seen:
-            if len(self.rolling_results) > self.rolling_score_window:
-                self.max_rolling_score_seen = self.rolling_results[-1]
-
-    def print_rolling_result(self):
-        """Prints out the latest episode results"""
-        text = """"\r Episode {0}, Score: {3: .2f}, Max score seen: {4: .2f}, Rolling score: {1: .2f}, Max rolling score seen: {2: .2f}"""
-        sys.stdout.write(
-            text.format(len(self.game_full_episode_scores), self.rolling_results[-1], self.max_rolling_score_seen,
-                        self.game_full_episode_scores[-1], self.max_episode_score_seen))
-        sys.stdout.flush()
-
-    def show_whether_achieved_goal(self):
-        """Prints out whether the agent achieved the environment target goal"""
-        index_achieved_goal = self.achieved_required_score_at_index()
-        print(" ")
-        if index_achieved_goal == -1:  # this means agent never achieved goal
-            print("\033[91m" + "\033[1m" +
-                  "{} did not achieve required score \n".format(self.agent_name) +
-                  "\033[0m" + "\033[0m")
-        else:
-            print("\033[92m" + "\033[1m" +
-                  "{} achieved required score at episode {} \n".format(self.agent_name, index_achieved_goal) +
-                  "\033[0m" + "\033[0m")
 
     def achieved_required_score_at_index(self):
         """Returns the episode at which agent achieved goal or -1 if it never achieved it"""
@@ -398,16 +321,6 @@ class Base_Agent(object):
         """Boolean indicated whether there are enough experiences in the memory buffer to learn from"""
         return len(self.memory) > self.hyperparameters["batch_size"]
 
-    def save_experience(self, memory=None, experience=None):
-        """Saves the recent experience to the memory buffer"""
-        if memory is None:
-            memory = self.memory
-
-        if experience is None:
-            experience = self.state, self.action, self.reward, self.next_state, self.done
-
-        memory.add_experience(*experience)
-
     def take_optimisation_step(self, optimizer, network, loss, clipping_norm=None, retain_graph=False):
         """Takes an optimisation step by calculating gradients given the loss and then updating the parameters"""
         if not isinstance(network, list):
@@ -420,6 +333,8 @@ class Base_Agent(object):
         loss.backward(retain_graph=retain_graph)
 
         self.logger.info("Loss -- {}".format(loss.item()))
+        self.wandb_log(dict(loss=loss),
+                       step=self.global_step_number)
 
         if self.debug_mode:
             self.log_gradient_and_weight_information(network, optimizer)
@@ -431,38 +346,6 @@ class Base_Agent(object):
 
         # Finally, take optimization step.
         optimizer.step()
-
-    def log_gradient_and_weight_information(self, networks, optimizer):
-        # Log weight information
-        total_norm = 0
-
-        for network in networks:
-            for name, param in network.named_parameters():
-                param_norm = param.grad.data.norm(2)
-                total_norm += param_norm.item() ** 2
-
-            total_norm = total_norm ** (1. / 2)
-            self.logger.info("Gradient Norm {}".format(total_norm))
-
-        for g in optimizer.param_groups:
-            learning_rate = g['lr']
-            break
-
-        self.logger.info("Learning Rate {}".format(learning_rate))
-
-    def wandb_log(self, dict, step, commit=False):
-        """Logs a series of datapoints using wandb"""
-        if self.config.wandb_log:
-            wandb.log(dict, step=step, commit=commit)
-
-    def wandb_watch(self, model, criterion=None, log="all", log_freq=None, idx=None):
-        """Watches a model through wandb"""
-        if self.config.wandb_log:
-            wandb.watch(model, criterion, log, log_freq, idx)
-
-    def locally_save_policy(self):
-        """Saves the model to a file."""
-        raise NotImplementedError("Saving needs to be implemented by the agent.")
 
     def soft_update_of_target_network(self, local_model, target_model, tau):
         """Updates the target network in the direction of the local network but by taking a step size
@@ -554,3 +437,130 @@ class Base_Agent(object):
         """Copies model parameters from from_model to to_model"""
         for to_model, from_model in zip(to_model.parameters(), from_model.parameters()):
             to_model.data.copy_(from_model.data.clone())
+
+
+    """ Logging methods."""
+    def setup_logger(self):
+        """Sets up the logger"""
+        filename = "Training.log"
+
+        try:
+            if os.path.isfile(filename):
+                os.remove(filename)
+        except:
+            pass
+
+        # Get logger and ser level.
+        logger = logging.getLogger(__name__)
+        logger.setLevel(logging.INFO)
+
+        # Create a file handler.
+        handler = logging.FileHandler(filename)
+        handler.setLevel(logging.INFO)
+
+        # Create a logging format.
+        formatter = logging.Formatter('%(asctime)s [%(process)d] %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+
+        # Add the handlers to the logger.
+        logger.addHandler(handler)
+
+        return logger
+
+    def log_game_info(self):
+        """Logs info relating to the game"""
+        # for ix, param in enumerate([self.environment_title, self.action_types, self.action_size, self.lowest_possible_episode_score,
+        #               self.state_size, self.hyperparameters, self.average_score_required_to_win, self.rolling_score_window,
+        #               self.device]):
+        #     self.logger.info("{} -- {}".format(ix, param))
+
+        self.logger.info(f"Environment title: {self.environment_title}")
+        self.logger.info(f"Activation types: {self.action_types}")
+        self.logger.info(f"Action size: {self.action_size}")
+        self.logger.info(f"Lowest possible ep. score: {self.lowest_possible_episode_score}")
+        self.logger.info(f"State size: {self.state_size}")
+        self.logger.info(f"Hyperparameters: {self.hyperparameters}")
+        self.logger.info(f"Avg. score required to win: {self.average_score_required_to_win}")
+        self.logger.info(f"Rolling score window: {self.rolling_score_window}")
+        self.logger.info(f"Device: {self.device}")
+
+    def save_result(self):
+        """Saves the result of an episode of the game"""
+        self.game_full_episode_scores.append(self.total_episode_score_so_far)
+        self.rolling_results.append(np.mean(self.game_full_episode_scores[-1 * self.rolling_score_window:]))
+        self.save_max_result_seen()
+
+    def save_max_result_seen(self):
+        """Updates the best episode result seen so far"""
+        if self.game_full_episode_scores[-1] > self.max_episode_score_seen:
+            self.max_episode_score_seen = self.game_full_episode_scores[-1]
+
+        if self.rolling_results[-1] > self.max_rolling_score_seen:
+            if len(self.rolling_results) > self.rolling_score_window:
+                self.max_rolling_score_seen = self.rolling_results[-1]
+
+    def print_rolling_result(self):
+        """Prints out the latest episode results"""
+        text = """"\r Episode {0}, Score: {3: .2f}, Max score seen: {4: .2f}, Rolling score: {1: .2f}, Max rolling score seen: {2: .2f}"""
+        sys.stdout.write(
+            text.format(len(self.game_full_episode_scores), self.rolling_results[-1], self.max_rolling_score_seen,
+                        self.game_full_episode_scores[-1], self.max_episode_score_seen))
+        sys.stdout.flush()
+
+    def show_whether_achieved_goal(self):
+        """Prints out whether the agent achieved the environment target goal"""
+        index_achieved_goal = self.achieved_required_score_at_index()
+        print(" ")
+        if index_achieved_goal == -1:  # this means agent never achieved goal
+            print("\033[91m" + "\033[1m" +
+                  "{} did not achieve required score \n".format(self.agent_name) +
+                  "\033[0m" + "\033[0m")
+        else:
+            print("\033[92m" + "\033[1m" +
+                  "{} achieved required score at episode {} \n".format(self.agent_name, index_achieved_goal) +
+                  "\033[0m" + "\033[0m")
+
+    def save_experience(self, memory=None, experience=None):
+        """Saves the recent experience to the memory buffer"""
+        if memory is None:
+            memory = self.memory
+
+        if experience is None:
+            experience = self.state, self.action, self.reward, self.next_state, self.done
+
+        memory.add_experience(*experience)
+
+    def log_gradient_and_weight_information(self, networks, optimizer):
+        # Log weight information
+        total_norm = 0
+
+        for network in networks:
+            for name, param in network.named_parameters():
+                param_norm = param.grad.data.norm(2)
+                total_norm += param_norm.item() ** 2
+
+            total_norm = total_norm ** (1. / 2)
+            self.logger.info("Gradient Norm {}".format(total_norm))
+
+        for g in optimizer.param_groups:
+            learning_rate = g['lr']
+            break
+
+        self.logger.info("Learning Rate {}".format(learning_rate))
+        self.wandb_log(dict(gradient_norm=total_norm,
+                            learning_rate=learning_rate),
+                       step=self.global_step_number)
+
+    def wandb_log(self, dict, step, commit=False):
+        """Logs a series of datapoints using wandb"""
+        if self.config.wandb_log:
+            wandb.log(dict, step=step, commit=commit)
+
+    def wandb_watch(self, model, criterion=None, log="all", log_freq=None, idx=None):
+        """Watches a model through wandb"""
+        if self.config.wandb_log:
+            wandb.watch(model, criterion, log, log_freq, idx)
+
+    def locally_save_policy(self):
+        """Saves the model to a file."""
+        raise NotImplementedError("Saving needs to be implemented by the agent.")

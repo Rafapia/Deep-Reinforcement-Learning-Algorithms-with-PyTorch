@@ -25,8 +25,6 @@ class SimpleISC(gym.Env):
             raise RuntimeError(f"Invalid environment mode \"{mode}\".")
 
         self.observation_space = spaces.Box(low=0, high=1, shape=(self.config.state_size,))
-        self.reward_threshold = 0.0
-        self.trials = 10
 
         # Setting all constants.
         self.speed = self.config.initial_speed
@@ -42,6 +40,10 @@ class SimpleISC(gym.Env):
 
         # Reset working variables.
         self.reset()
+        self.reward_threshold = self.config.reward_threshold
+        self.trials = self.config.trials
+        self.max_episode_steps = self.config.max_episode_steps
+        self.id = "SimpleISC"
 
     def reset(self):
         # Some working variables.

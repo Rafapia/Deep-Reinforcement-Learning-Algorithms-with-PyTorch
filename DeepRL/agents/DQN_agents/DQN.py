@@ -43,7 +43,7 @@ class DQN(Base_Agent):
                 for _ in range(self.hyperparameters["learning_iterations"]):
                     self.learn()
             self.save_experience()
-            self.state = self.next_state #this is to set the state for the next iteration
+            self.state = self.next_state    # This is to set the state for the next iteration
             self.global_step_number += 1
 
         self.episode_number += 1
@@ -78,8 +78,6 @@ class DQN(Base_Agent):
         actions_list = [action_X.item() for action_X in actions ]
 
         self.logger.info("Action counts {}".format(Counter(actions_list)))
-        self.wandb_log(dict(loss=loss),
-                       self.global_step_number)
 
         self.take_optimisation_step(self.q_network_optimizer, self.q_network_local, loss, self.hyperparameters["gradient_clipping_norm"])
 
