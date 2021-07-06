@@ -27,8 +27,12 @@ config.overwrite_existing_results_file = True
 config.randomise_random_seed = False
 config.save_model = False
 config.seed = 0
+
 config.debug_mode = True
 config.wandb_log = False
+config.wandb_job_type = "testing"
+config.wandb_tags = ["initial testing"]
+config.wandb_model_log_freq = 1_000
 
 
 config.hyperparameters = {

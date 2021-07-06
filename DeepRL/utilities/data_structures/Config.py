@@ -42,7 +42,7 @@ class Config(object):
         # Whether to log run on WandB.
         self.wandb_log = True
         # The tags for this run. Helps group runs.
-        self.wandb_tags = "testing"
+        self.wandb_tags = ["testing"]
         # Who is running this run.
         self.wandb_entity = "rafael_piacsek"
         # The type of run.

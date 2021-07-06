@@ -51,14 +51,15 @@ Bit Flipping (discrete actions with dynamic goals) or Fetch Reach (continuous ac
 
 The repository's high-level structure is:
  
-    ├── agents                    
-        ├── actor_critic_agents   
-        ├── DQN_agents         
-        ├── policy_gradient_agents
-        └── stochastic_policy_search_agents 
-    ├── environments   
-    ├── results             
-        └── data_and_graphs        
-    ├── tests
-    ├── utilities             
-        └── data structures            
+    DeepRL
+        └── agents                    
+            ├── actor_critic_agents   
+            ├── DQN_agents         
+            ├── policy_gradient_agents
+            └── stochastic_policy_search_agents 
+        ├── environments   
+        ├── results             
+            └── data_and_graphs        
+        ├── tests
+        ├── utilities             
+            └── data structures            
