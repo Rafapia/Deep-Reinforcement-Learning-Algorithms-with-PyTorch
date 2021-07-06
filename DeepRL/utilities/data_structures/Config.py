@@ -11,7 +11,7 @@ class Config(object):
         # The number of episodes to run during training.
         self.num_episodes_to_run = None
         # How many runs per agent.
-        self.runs_per_agent = None
+        self.runs_per_agent = 1
 
         # An instance of the model to be used. If None, will create MLP using hyperparameters and nn_builder.
         self.model = None
@@ -40,5 +40,4 @@ class Config(object):
         # The type of run.
         self.wandb_job_type = "train"
         # How frequently to log model.
-        self.wandb_model_log_freq = 1000
-
+        self.wandb_model_log_freq = 1_000

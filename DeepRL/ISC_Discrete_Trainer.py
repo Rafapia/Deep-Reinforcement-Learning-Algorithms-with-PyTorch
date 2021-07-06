@@ -13,21 +13,18 @@ config.environment = Wrapper(SimpleISC(mode="DISCRETE"))
 config.num_episodes_to_run = 10_000
 
 config.file_to_save_data_results = "results/data_and_graphs/isc/IllinoisSolarCar_Results_Data.pkl"
-config.file_to_save_results_graph = "results/data_and_graphs/isc/IllinoisSolarCar_Results_Graph.png"
-config.show_solution_score = False
-config.visualise_individual_results = False
-config.visualise_overall_agent_results = False
-config.standard_deviation_results = 1.0
 config.runs_per_agent = 1
 config.use_GPU = is_available()
 config.overwrite_existing_results_file = True
 config.randomise_random_seed = False
 config.save_model = False
+config.model = None
 config.seed = 0
 
 config.debug_mode = True
 config.wandb_log = False
 config.wandb_job_type = "testing"
+config.wandb_entity = "rafael_piacsek"
 config.wandb_tags = ["initial testing"]
 config.wandb_model_log_freq = 1_000
 
@@ -58,4 +55,3 @@ config.hyperparameters = {
 if __name__ == '__main__':
     trainer = Trainer(config, Dueling_DDQN)
     trainer.train()
-
