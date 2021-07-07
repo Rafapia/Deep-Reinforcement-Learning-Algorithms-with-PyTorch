@@ -71,7 +71,7 @@ class SimpleISC(gym.Env):
         self.current_net_power = self.SOLAR[self.current_step] - self.current_power_used
         self.current_net_energy = self.current_net_energy + self.current_net_power * self.TDIFF
 
-        self.soc = min((self.current_net_energy / self.config.battery_capacity) + self.config.initial_soc, 1)
+        self.soc = max(min((self.current_net_energy / self.config.battery_capacity) + self.config.initial_soc, 1), 0)
 
         self.distance_traveled_in_step = self.speed * self.TDIFF
         self.total_distance_traveled += self.distance_traveled_in_step
@@ -80,21 +80,20 @@ class SimpleISC(gym.Env):
         self.current_step += 1
 
         # Calculate reward in km.
-        reward = self.distance_traveled_in_step / 1_000
+        reward = self._calculate_reward()
 
         # Check if done
         done = (self.current_step >= self.config.steps_in_episode) or (self.soc <= 0)
 
         # Information to log.
         if done:
-            info = dict(total_distance_traveled=self.total_distance_traveled,
+            info = dict(total_distance_traveled=self.total_distance_traveled / 1_000,
                         number_of_steps_taken=self.current_step,
-                        end_soc=self.soc,
-                        )
+                        end_soc=self.soc,)
         else:
             info = None
 
-        return self._get_observation(), reward, done, None
+        return self._get_observation(), reward, done, info
 
     def render(self, mode='human'):
         print(f"Step: {self.current_step}, "
@@ -108,6 +107,14 @@ class SimpleISC(gym.Env):
 
     def close(self):
         pass
+
+    def _calculate_reward(self):
+        # return self.distance_traveled_in_step / 1_000
+        max_reward = 1.
+        exponent = 0.4
+        dist = np.interp(self.MAX_DISTANCE - self.total_distance_traveled, [0, self.MAX_DISTANCE], [0, 1])
+
+        return max_reward - max_reward*(dist/max_reward)**exponent
 
     def _take_action(self, action):
         # Discrete(3) == [0, 1, 2]

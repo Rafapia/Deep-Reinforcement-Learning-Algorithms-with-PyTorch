@@ -11,7 +11,7 @@ from torch.cuda import is_available
 config = Config()
 
 config.environment = Wrapper(SimpleISC(mode="DISCRETE"))
-config.num_episodes_to_run = 2_000
+config.num_episodes_to_run = 1_000
 
 config.file_to_save_data_results = "results/data_and_graphs/isc/IllinoisSolarCar_Results_Data.pkl"
 config.runs_per_agent = 1
@@ -23,7 +23,7 @@ config.model = None
 config.seed = 0
 
 config.debug_mode = True
-config.wandb_log = False
+config.wandb_log = True
 config.wandb_job_type = "testing"
 config.wandb_entity = "rafael_piacsek"
 config.wandb_tags = ["initial testing"]
@@ -39,21 +39,21 @@ config.hyperparameters = dict(
     beta_prioritised_replay=0.1,
     buffer_size=100_000,
     clip_rewards=False,
-    discount_rate=0.99,
+    discount_rate=0.999,
     epsilon=1.0,
-    epsilon_decay_rate_denominator=100,
+    epsilon_decay_rate_denominator=200,
     final_layer_activation="softmax",
     gradient_clipping_norm=5,
     incremental_td_error=1e-8,
     learning_iterations=1,
     learning_rate=0.01,
-    random_episodes_to_run=500,
+    random_episodes_to_run=config.num_episodes_to_run//5,
     tau=1e-2,
-    update_every_n_steps=20,
+    update_every_n_steps=15,
 
     num_hidden_layers=None,
     hidden_layer_size=None,
-    linear_hidden_units=[32, 32, 32, 32],       # Either set this, or the previous two.
+    linear_hidden_units=[128, 128, 128, 128],       # Either set this, or the previous two.
 )
 
 if __name__ == '__main__':

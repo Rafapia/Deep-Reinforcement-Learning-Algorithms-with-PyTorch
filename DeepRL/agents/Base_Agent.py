@@ -127,7 +127,8 @@ class Base_Agent(object):
             self.save_result()
 
             if ("exploration_strategy" in self.__dict__.keys() and isinstance(self.exploration_strategy, Epsilon_Greedy_Exploration)):
-                self.wandb_log(dict(epsilon=self.exploration_strategy.get_epsilon()),
+                self.wandb_log(dict(epsilon=self.exploration_strategy.get_epsilon(),
+                                    episode_number=self.episode_number),
                                step=self.global_step_number,
                                commit=False)
 
@@ -284,7 +285,8 @@ class Base_Agent(object):
 
         # Log any information that the env might provide.
         if info is not None and isinstance(info, dict):
-            self.wandb_log(info,
+            self.wandb_log(dict(env=info,
+                                episode_number=self.episode_number),
                            step=self.global_step_number,
                            commit=False)
 
@@ -337,7 +339,8 @@ class Base_Agent(object):
         loss.backward(retain_graph=retain_graph)
 
         self.logger.info("Loss -- {}".format(loss.item()))
-        self.wandb_log(dict(loss=loss),
+        self.wandb_log(dict(loss=loss,
+                            episode_number=self.episode_number),
                        step=self.global_step_number)
 
         if self.debug_mode:
@@ -552,7 +555,8 @@ class Base_Agent(object):
 
         self.logger.info("Learning Rate {}".format(learning_rate))
         self.wandb_log(dict(gradient_norm=total_norm,
-                            learning_rate=learning_rate),
+                            learning_rate=learning_rate,
+                            episode_number=self.episode_number),
                        step=self.global_step_number)
 
     def wandb_log(self, dict, step, commit=False):
