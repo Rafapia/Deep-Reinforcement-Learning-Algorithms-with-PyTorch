@@ -20,6 +20,8 @@ class Epsilon_Greedy_Exploration(Base_Exploration_Strategy):
         else:
             self.random_episodes_to_run = 0
 
+        self.epsilon = config.hyperparameters["epsilon"]
+
     def perturb_action_for_exploration_purposes(self, action_info):
         """Perturbs the action of the agent to encourage exploration"""
         action_values = action_info["action_values"]
@@ -30,23 +32,23 @@ class Epsilon_Greedy_Exploration(Base_Exploration_Strategy):
             print("Exploration has been turned OFF")
             print(" ")
             self.notified_that_exploration_turned_off = True
-        epsilon = self.get_updated_epsilon_exploration(action_info)
+        self.epsilon = self.get_updated_epsilon_exploration(action_info)
 
-
-        if (random.random() > epsilon or turn_off_exploration) and (episode_number >= self.random_episodes_to_run):
+        if (random.random() > self.epsilon or turn_off_exploration) and (episode_number >= self.random_episodes_to_run):
             return torch.argmax(action_values).item()
-        return  np.random.randint(0, action_values.shape[1])
 
-    def get_updated_epsilon_exploration(self, action_info, epsilon=1.0):
+        return np.random.randint(0, action_values.shape[1])
+
+    def get_updated_epsilon_exploration(self, action_info, epsilon_=1.0):
         """Gets the probability that we just pick a random action. This probability decays the more episodes we have seen"""
         episode_number = action_info["episode_number"]
         epsilon_decay_denominator = self.config.hyperparameters["epsilon_decay_rate_denominator"]
 
         if self.exploration_cycle_episodes_length is None:
-            epsilon = epsilon / (1.0 + (episode_number / epsilon_decay_denominator))
+            self.epsilon = epsilon_ / (1.0 + (episode_number / epsilon_decay_denominator))
         else:
-            epsilon = self.calculate_epsilon_with_cyclical_strategy(episode_number)
-        return epsilon
+            self.epsilon = self.calculate_epsilon_with_cyclical_strategy(episode_number)
+        return self.epsilon
 
     def calculate_epsilon_with_cyclical_strategy(self, episode_number):
         """Calculates epsilon according to a cyclical strategy"""
@@ -56,12 +58,16 @@ class Epsilon_Greedy_Exploration(Base_Exploration_Strategy):
         cycle = [ix for ix in range(int(self.exploration_cycle_episodes_length / 2))] + [ix for ix in range(
             int(self.exploration_cycle_episodes_length / 2), 0, -1)]
         cycle_ix = episode_number % self.exploration_cycle_episodes_length
-        epsilon = max_epsilon - cycle[cycle_ix] * increment
-        return epsilon
+        self.epsilon = max_epsilon - cycle[cycle_ix] * increment
+        return self.epsilon
 
     def add_exploration_rewards(self, reward_info):
         """Actions intrinsic rewards to encourage exploration"""
         return reward_info["reward"]
+
+    def get_epsilon(self):
+        """Gets the current epsilon"""
+        return self.epsilon
 
     def reset(self):
         """Resets the noise process"""

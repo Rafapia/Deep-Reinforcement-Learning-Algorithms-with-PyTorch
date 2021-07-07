@@ -8,6 +8,7 @@ import torch
 import time
 import wandb
 from nn_builder.pytorch.NN import NN
+from exploration_strategies.Epsilon_Greedy_Exploration import Epsilon_Greedy_Exploration
 from torch.optim import optimizer
 
 
@@ -31,8 +32,11 @@ class Base_Agent(object):
                                         job_type=self.config.wandb_job_type,
                                         tags=self.config.wandb_tags)
 
-        # To allow for wandb sweeps, copy config.hyperparameters from wandb.config instead of config directly.
-        self.hyperparameters = wandb.config
+            # To allow for wandb sweeps, copy config.hyperparameters from wandb.config instead of config directly.
+            self.hyperparameters = wandb.config
+
+        else:
+            self.hyperparameters = self.config.hyperparameters
 
         self.set_random_seeds(config.seed)
         self.environment = config.environment
@@ -122,10 +126,16 @@ class Base_Agent(object):
             self.run_episode()
             self.save_result()
 
+            if ("exploration_strategy" in self.__dict__.keys() and isinstance(self.exploration_strategy, Epsilon_Greedy_Exploration)):
+                self.wandb_log(dict(epsilon=self.exploration_strategy.get_epsilon()),
+                               step=self.global_step_number,
+                               commit=False)
+
             self.wandb_log(dict(episode_number=self.episode_number,
                                 episode_score=self.game_full_episode_scores[-1],
                                 rolling_episode_score=self.rolling_results[-1],
                                 max_episode_score=self.max_episode_score_seen,
+                                max_rolling_episode_score=self.max_rolling_score_seen,
                                 ),
                            step=self.global_step_number,    # TODO: Fix synchronization issue.
                            commit=True)
@@ -265,12 +275,18 @@ class Base_Agent(object):
 
     def conduct_action(self, action):
         """Conducts an action in the environment"""
-        self.next_state, self.reward, self.done, _ = self.environment.step(action)
+        self.next_state, self.reward, self.done, info = self.environment.step(action)
 
         self.total_episode_score_so_far += self.reward
 
         if self.hyperparameters["clip_rewards"]:
             self.reward = max(min(self.reward, 1.0), -1.0)
+
+        # Log any information that the env might provide.
+        if info is not None and isinstance(info, dict):
+            self.wandb_log(info,
+                           step=self.global_step_number,
+                           commit=False)
 
     def achieved_required_score_at_index(self):
         """Returns the episode at which agent achieved goal or -1 if it never achieved it"""

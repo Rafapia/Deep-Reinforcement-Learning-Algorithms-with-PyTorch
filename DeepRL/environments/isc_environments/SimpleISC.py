@@ -24,7 +24,7 @@ class SimpleISC(gym.Env):
         else:
             raise RuntimeError(f"Invalid environment mode \"{mode}\".")
 
-        self.observation_space = spaces.Box(low=0, high=1, shape=(self.config.state_size,))
+        self.observation_space = spaces.Box(low=float("-inf"), high=float("inf"), shape=(self.config.state_size,))
 
         # Setting all constants.
         self.speed = self.config.initial_speed
@@ -80,12 +80,21 @@ class SimpleISC(gym.Env):
         self.current_step += 1
 
         # Calculate reward in km.
-        reward = self.distance_traveled_in_step // 1_000
+        reward = self.distance_traveled_in_step / 1_000
 
         # Check if done
         done = (self.current_step >= self.config.steps_in_episode) or (self.soc <= 0)
 
-        return self._get_observation(), reward, done, {}
+        # Information to log.
+        if done:
+            info = dict(total_distance_traveled=self.total_distance_traveled,
+                        number_of_steps_taken=self.current_step,
+                        end_soc=self.soc,
+                        )
+        else:
+            info = None
+
+        return self._get_observation(), reward, done, None
 
     def render(self, mode='human'):
         print(f"Step: {self.current_step}, "
@@ -112,6 +121,9 @@ class SimpleISC(gym.Env):
         elif self.mode is "CONTINUOUS":
             self.speed += np.interp(action, [-1, 1], [-self.config.deceleration, self.config.acceleration])
 
+        # Make sure speed is bounded by speed limit and is not negative.
+        self.speed = max(min(self.speed, self.config.max_speed), 0)
+
     def _get_observation(self):
         return np.array([
             self.current_net_power / self.HIGHEST_SOLAR_POWER,
@@ -119,11 +131,8 @@ class SimpleISC(gym.Env):
             self.total_distance_traveled / self.MAX_DISTANCE,
             self.current_step / self.config.steps_in_episode,
             self.soc,
-            self.velocities[-1] / self.config.max_speed,
+            self.speed / self.config.max_speed,
         ], dtype=np.float32)
-
-    def get_score_to_win(self):
-        return 647
 
     """ ----------------------------------------------------------------------------------------------------
                                         Helper calculation functions

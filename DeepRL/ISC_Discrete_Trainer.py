@@ -23,35 +23,37 @@ config.model = None
 config.seed = 0
 
 config.debug_mode = True
-config.wandb_log = True
+config.wandb_log = False
 config.wandb_job_type = "testing"
 config.wandb_entity = "rafael_piacsek"
-config.wandb_tags = ["initial testing", "initial sweep"]
+config.wandb_tags = ["initial testing"]
 config.wandb_model_log_freq = 1_000
 
 
 config.hyperparameters = dict(
-    learning_rate=0.01,
-    batch_size=128,
-    buffer_size=1_000_000,
-    epsilon=1.0,
-    epsilon_decay_rate_denominator=150,
-    discount_rate=0.999,
-    alpha_prioritised_replay=0.6,
-    beta_prioritised_replay=0.1,
-    incremental_td_error=1e-8,
-    update_every_n_steps=15,
-    tau=1e-2,
-    num_hidden_layers=2,
-    hidden_layer_size=128,
-    linear_hidden_units=None,       # Either set this, or the previous two.
-    final_layer_activation="softmax",
     # y_range=(-1, 14),
-    batch_norm=False,
-    gradient_clipping_norm=5,
     HER_sample_proportion=0.8,
+    alpha_prioritised_replay=0.6,
+    batch_norm=False,
+    batch_size=128,
+    beta_prioritised_replay=0.1,
+    buffer_size=100_000,
+    clip_rewards=False,
+    discount_rate=0.99,
+    epsilon=1.0,
+    epsilon_decay_rate_denominator=100,
+    final_layer_activation="softmax",
+    gradient_clipping_norm=5,
+    incremental_td_error=1e-8,
     learning_iterations=1,
-    clip_rewards=False
+    learning_rate=0.01,
+    random_episodes_to_run=500,
+    tau=1e-2,
+    update_every_n_steps=20,
+
+    num_hidden_layers=None,
+    hidden_layer_size=None,
+    linear_hidden_units=[32, 32, 32, 32],       # Either set this, or the previous two.
 )
 
 if __name__ == '__main__':
