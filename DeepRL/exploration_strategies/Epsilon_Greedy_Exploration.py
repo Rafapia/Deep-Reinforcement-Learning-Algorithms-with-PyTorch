@@ -33,7 +33,7 @@ class Epsilon_Greedy_Exploration(Base_Exploration_Strategy):
             print(" ")
             self.notified_that_exploration_turned_off = True
 
-        if not turn_off_exploration:
+        if episode_number >= self.random_episodes_to_run:
             self.epsilon = self.get_updated_epsilon_exploration(action_info)
 
         if (random.random() > self.epsilon or turn_off_exploration) and (episode_number >= self.random_episodes_to_run):
