@@ -109,12 +109,29 @@ class SimpleISC(gym.Env):
         pass
 
     def _calculate_reward(self):
+        """Approach 1: Return the distance traveled in this step."""
         # return self.distance_traveled_in_step / 1_000
+
+        """Approach 2: Return a smooth function that reflects the difference between target dist and actual dist.
+        https://www.youtube.com/watch?v=0R3PnJEisqk"""
+        # max_reward = 1.
+        # exponent = 0.4
+        # dist = np.interp(self.MAX_DISTANCE - self.total_distance_traveled, [0, self.MAX_DISTANCE], [0, 1])
+        #
+        # return max_reward - max_reward*(dist/max_reward)**exponent
+
+        """Approach 3:
+        https://www.youtube.com/watch?v=0R3PnJEisqk"""
         max_reward = 1.
         exponent = 0.4
-        dist = np.interp(self.MAX_DISTANCE - self.total_distance_traveled, [0, self.MAX_DISTANCE], [0, 1])
+        min_values = 0.1
 
-        return max_reward - max_reward*(dist/max_reward)**exponent
+        diff = np.interp(self.MAX_DISTANCE - self.total_distance_traveled, [0, self.MAX_DISTANCE], [0, 1])
+
+        dist_reward = max_reward - max_reward*(diff/max_reward)**exponent
+        soc_discount = (1 - max(self.soc, min_values)) ** (1/max(diff, min_values))
+
+        return dist_reward * soc_discount
 
     def _take_action(self, action):
         # Discrete(3) == [0, 1, 2]
