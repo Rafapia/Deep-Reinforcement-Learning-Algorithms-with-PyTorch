@@ -32,9 +32,9 @@ class Epsilon_Greedy_Exploration(Base_Exploration_Strategy):
             print("Exploration has been turned OFF")
             print(" ")
             self.notified_that_exploration_turned_off = True
-        self.epsilon = self.get_updated_epsilon_exploration(action_info)
 
         if (random.random() > self.epsilon or turn_off_exploration) and (episode_number >= self.random_episodes_to_run):
+            self.epsilon = self.get_updated_epsilon_exploration(action_info)
             return torch.argmax(action_values).item()
 
         return np.random.randint(0, action_values.shape[1])
