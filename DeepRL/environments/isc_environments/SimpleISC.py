@@ -123,13 +123,12 @@ class SimpleISC(gym.Env):
         """Approach 3:
         https://www.youtube.com/watch?v=0R3PnJEisqk"""
         max_reward = 1.
-        exponent = 0.4
-        min_values = 0.1
+        diff_exponent, soc_exponent = 0.4, 0.6
 
         diff = np.interp(self.MAX_DISTANCE - self.total_distance_traveled, [0, self.MAX_DISTANCE], [0, 1])
 
-        dist_reward = max_reward - max_reward*(diff/max_reward)**exponent
-        soc_discount = (1 - max(self.soc, min_values)) ** (1/max(diff, min_values))
+        dist_reward = max_reward - max_reward*(diff/max_reward)**diff_exponent
+        soc_discount = max_reward - max_reward*(self.soc/max_reward)**soc_exponent
 
         return dist_reward * soc_discount
 

@@ -11,7 +11,7 @@ from torch.cuda import is_available
 config = Config()
 
 config.environment = Wrapper(SimpleISC(mode="DISCRETE"))
-config.num_episodes_to_run = 1_000
+config.num_episodes_to_run = 10_000
 
 config.file_to_save_data_results = "results/data_and_graphs/isc/IllinoisSolarCar_Results_Data.pkl"
 config.runs_per_agent = 1
@@ -35,25 +35,25 @@ config.hyperparameters = dict(
     HER_sample_proportion=0.8,
     alpha_prioritised_replay=0.6,
     batch_norm=False,
-    batch_size=128,
+    batch_size=64,
     beta_prioritised_replay=0.1,
-    buffer_size=100_000,
+    buffer_size=1_000_000,
     clip_rewards=False,
     discount_rate=0.999,
     epsilon=1.0,
-    epsilon_decay_rate_denominator=(0.01*(config.num_episodes_to_run*9//10))/(1-0.01),    # Calculates exploration based on number of eps.,
+    epsilon_decay_rate_denominator=(config.num_episodes_to_run*0.01)//(1-0.01),
     final_layer_activation="softmax",
     gradient_clipping_norm=5,
     incremental_td_error=1e-8,
     learning_iterations=1,
     learning_rate=0.01,
-    random_episodes_to_run=config.num_episodes_to_run//5,
+    random_episodes_to_run=0,
     tau=1e-2,
     update_every_n_steps=15,
 
-    num_hidden_layers=None,
-    hidden_layer_size=None,
-    linear_hidden_units=[128, 128, 128, 128],       # Either set this, or the previous two.
+    num_hidden_layers=4,
+    hidden_layer_size=128,
+    linear_hidden_units=None,       # Either set this, or the previous two.
 )
 
 if __name__ == '__main__':

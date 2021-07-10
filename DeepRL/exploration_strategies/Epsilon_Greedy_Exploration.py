@@ -47,7 +47,7 @@ class Epsilon_Greedy_Exploration(Base_Exploration_Strategy):
         epsilon_decay_denominator = self.config.hyperparameters["epsilon_decay_rate_denominator"]
 
         if self.exploration_cycle_episodes_length is None:
-            self.epsilon = epsilon_ / (1.0 + (episode_number / epsilon_decay_denominator))
+            self.epsilon = epsilon_ / (1.0 + ((episode_number-self.random_episodes_to_run) / epsilon_decay_denominator))
         else:
             self.epsilon = self.calculate_epsilon_with_cyclical_strategy(episode_number)
         return self.epsilon
