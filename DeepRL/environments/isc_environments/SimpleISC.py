@@ -30,8 +30,8 @@ class SimpleISC(gym.Env):
         self.speed = self.config.initial_speed
 
         self.HIGHEST_SOLAR_POWER = self._get_solar_power(1601294400, latitude=0, longitude=0)
-        self.MAX_DISTANCE = self.config.max_speed * (self.config.end_time - self.config.start_time)
-        self.reward_range = np.array([0, self.MAX_DISTANCE])
+        self.MAX_DISTANCE = 700_000     # m.    # self.config.max_speed * (self.config.end_time - self.config.start_time)
+        self.reward_range = np.array([0, 1])
 
         self.TIMES = np.linspace(self.config.start_time, self.config.end_time, self.config.steps_in_episode)
         self.TDIFF = self.TIMES[1] - self.TIMES[0]
@@ -122,15 +122,15 @@ class SimpleISC(gym.Env):
 
         """Approach 3:
         https://www.youtube.com/watch?v=0R3PnJEisqk"""
-        max_reward = 1.
+        scale = 1.
         diff_exponent, soc_exponent = 0.4, 0.6
 
         diff = np.interp(self.MAX_DISTANCE - self.total_distance_traveled, [0, self.MAX_DISTANCE], [0, 1])
 
-        dist_reward = max_reward - max_reward*(diff/max_reward)**diff_exponent
-        soc_discount = max_reward - max_reward*(self.soc/max_reward)**soc_exponent
+        dist_reward = scale - scale*(diff**diff_exponent)
+        # soc_discount = scale - scale*(self.soc**soc_exponent)
 
-        return dist_reward * soc_discount
+        return dist_reward #* soc_discount / scale
 
     def _take_action(self, action):
         # Discrete(3) == [0, 1, 2]

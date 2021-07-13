@@ -11,7 +11,7 @@ from torch.cuda import is_available
 config = Config()
 
 config.environment = Wrapper(SimpleISC(mode="DISCRETE"))
-config.num_episodes_to_run = 10_000
+config.num_episodes_to_run = 5_000
 
 config.file_to_save_data_results = "results/data_and_graphs/isc/IllinoisSolarCar_Results_Data.pkl"
 config.runs_per_agent = 1
@@ -51,8 +51,8 @@ config.hyperparameters = dict(
     tau=1e-2,
     update_every_n_steps=15,
 
-    num_hidden_layers=4,
-    hidden_layer_size=128,
+    num_hidden_layers=2,
+    hidden_layer_size=256,
     linear_hidden_units=None,       # Either set this, or the previous two.
 )
 

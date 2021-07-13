@@ -4,10 +4,10 @@ import datetime
 class ISC_Config(object):
     def __init__(self):
         # Initial configurations for the env.
-        self.steps_in_episode = 250
+        self.steps_in_episode = 200
         self.max_speed = 35     # In m/s.
 
-        self.initial_speed = 0  # In m/s.
+        self.initial_speed = 21  # In m/s.
         self.initial_soc = 1.0
 
         self.start_time = datetime.datetime.timestamp(
@@ -23,8 +23,8 @@ class ISC_Config(object):
         self.frontal_area = 0.78
         self.coefficient_of_drag = 0.116
         self.idle_power = 0.39
-        self.acceleration = 2.5
-        self.deceleration = 1.5
+        self.acceleration = 1
+        self.deceleration = 1
 
         # TODO: Maybe dynamically sample this from env?
         # Environment settings.
@@ -35,7 +35,7 @@ class ISC_Config(object):
         # Continuous
         self.action_size_continuous = 1
 
-        # Required to win = 964 km.
-        self.reward_threshold = 200
+        # Required to win ~ 670 km.
+        self.reward_threshold = 52
         self.trials = 100
         self.max_episode_steps = self.steps_in_episode
